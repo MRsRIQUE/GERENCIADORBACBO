@@ -9,7 +9,7 @@
         (function() {
             const token = sessionStorage.getItem('auth_token');
             const authTime = sessionStorage.getItem('auth_time');
-            const validHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+            const validHash = 'fe8418c6b33aa1b719838674797cc40592b7c0f9a6952463b43e92d362cf5d89';
             
             if (!token || token !== validHash || !authTime) {
                 window.location.href = 'index.html';
@@ -1372,4 +1372,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>
