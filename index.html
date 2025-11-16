@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso - Rei do Bacbo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0A4D3C 0%, #052D22 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(13, 13, 13, 0.95);
+            border: 3px solid #D4AF37;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #D4AF37;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .logo p {
+            color: #F4E4B5;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #D4AF37;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #D4AF37;
+            border-radius: 10px;
+            background: rgba(10, 77, 60, 0.3);
+            color: #F4E4B5;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #F4E4B5;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #D4AF37 0%, #F4E4B5 100%);
+            border: none;
+            border-radius: 10px;
+            color: #052D22;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            border: 2px solid #DC3545;
+            color: #DC3545;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .info-box {
+            background: rgba(10, 77, 60, 0.3);
+            border: 2px solid #D4AF37;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .info-box p {
+            color: #F4E4B5;
+            font-size: 13px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .info-box .icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            .logo h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>👑 REI DO BACBO</h1>
+            <p>Gestão Profissional de Banca</p>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            ❌ Senha incorreta! Tente novamente.
+        </div>
+
+        <form id="loginForm" onsubmit="return checkPassword(event);">
+            <div class="form-group">
+                <label for="password">🔐 Senha de Acesso</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    placeholder="Digite a senha"
+                    autocomplete="off"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn-login">
+                Entrar
+            </button>
+        </form>
+
+        <div class="info-box">
+            <div class="icon">🔒</div>
+            <p>Área restrita para usuários autorizados.</p>
+        </div>
+    </div>
+
+    <script>
+        // Hash SHA-256 da senha (você pode gerar em: https://emn178.github.io/online-tools/sha256.html)
+        // Senha padrão: "bacbo2025" (MUDE ISSO!)
+        const PASSWORD_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
+        
+        let attempts = 0;
+        const MAX_ATTEMPTS = 5;
+
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        async function checkPassword(event) {
+            event.preventDefault();
+            
+            const passwordInput = document.getElementById('password');
+            const password = passwordInput.value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Hash da senha digitada
+            const hashedInput = await hashPassword(password);
+
+            if (hashedInput === PASSWORD_HASH) {
+                // Senha correta - salva token
+                sessionStorage.setItem('auth_token', hashedInput);
+                sessionStorage.setItem('auth_time', Date.now());
+                
+                // Redireciona para o app
+                window.location.href = 'app.html';
+            } else {
+                // Senha incorreta
+                attempts++;
+                
+                errorMessage.classList.remove('show');
+                void errorMessage.offsetWidth; // Force reflow
+                errorMessage.classList.add('show');
+                
+                passwordInput.value = '';
+                passwordInput.focus();
+
+                if (attempts >= MAX_ATTEMPTS) {
+                    errorMessage.textContent = '❌ Muitas tentativas! Aguarde 30 segundos.';
+                    document.getElementById('loginForm').style.pointerEvents = 'none';
+                    
+                    setTimeout(() => {
+                        attempts = 0;
+                        document.getElementById('loginForm').style.pointerEvents = 'auto';
+                        errorMessage.classList.remove('show');
+                    }, 30000);
+                }
+            }
+
+            return false;
+        }
+
+        // Verifica se já está autenticado
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = sessionStorage.getItem('auth_token');
+            const authTime = sessionStorage.getItem('auth_time');
+            
+            if (token === PASSWORD_HASH && authTime) {
+                const elapsed = Date.now() - parseInt(authTime);
+                // Sessão válida por 24 horas
+                if (elapsed < 24 * 60 * 60 * 1000) {
+                    window.location.href = 'app.html';
+                }
+            }
+        });
+
+        // Previne inspeção (dificulta, não impede)
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

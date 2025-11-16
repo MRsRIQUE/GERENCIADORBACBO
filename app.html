@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Rei do Bacbo - Gestão Profissional</title>
+    <script>
+        // Verificação de autenticação
+        (function() {
+            const token = sessionStorage.getItem('auth_token');
+            const authTime = sessionStorage.getItem('auth_time');
+            const validHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+            
+            if (!token || token !== validHash || !authTime) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            const elapsed = Date.now() - parseInt(authTime);
+            if (elapsed > 24 * 60 * 60 * 1000) {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+                return;
+            }
+        })();
+
+        // Proteção contra DevTools (dificulta cópia)
+        (function() {
+            const detectDevTools = () => {
+                const threshold = 160;
+                if (window.outerWidth - window.innerWidth > threshold || 
+                    window.outerHeight - window.innerHeight > threshold) {
+                    document.body.innerHTML = '<h1 style="color:red;text-align:center;margin-top:50vh;">⚠️ Acesso Bloqueado</h1>';
+                }
+            };
+            
+            // Desabilita clique direito
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            
+            // Desabilita teclas de desenvolvedor
+            document.addEventListener('keydown', e => {
+                if (e.key === 'F12' || 
+                    (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                    (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                    (e.ctrlKey && e.key === 'U')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+            
+            // Verifica DevTools a cada 1 segundo
+            setInterval(detectDevTools, 1000);
+        })();
+
+        // Anti-cópia
+        document.addEventListener('DOMContentLoaded', () => {
+            document.addEventListener('copy', e => {
+                e.preventDefault();
+                return false;
+            });
+            
+            document.addEventListener('cut', e => {
+                e.preventDefault();
+                return false;
+            });
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #D4AF37;
+            --dark-green: #0A4D3C;
+            --deep-green: #052D22;
+            --black: #0D0D0D;
+            --light-gold: #F4E4B5;
+            --success: #28A745;
+            --danger: #DC3545;
+            --warning: #FFC107;
+            --blue: #3B82F6;
+            --red: #EF4444;
+            --purple: #A855F7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--deep-green) 0%, var(--black) 100%);
+            color: var(--light-gold);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(10, 77, 60, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            color: var(--primary-gold);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header .subtitle {
+            font-size: 0.8em;
+            color: var(--light-gold);
+            font-style: italic;
+        }
+
+        .crown-icon {
+            font-size: 2em;
+            animation: pulse-gold 2s infinite;
+        }
+
+        @keyframes pulse-gold {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        .settings-btn {
+            background: transparent;
+            border: 2px solid var(--primary-gold);
+            color: var(--primary-gold);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Balance Display */
+        .balance-card {
+            background: linear-gradient(135deg, var(--dark-green), var(--deep-green));
+            border: 2px solid var(--primary-gold);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            animation: scale-in 0.3s ease;
+        }
+
+        @keyframes scale-in {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .balance-label {
+            font-size: 0.9em;
+            color: var(--light-gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .balance-amount {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--primary-gold);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .balance-profit {
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .profit-positive { color: var(--success); }
+        .profit-negative { color: var(--danger); }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--deep-green);
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .nav-tab {
+            padding: 12px 8px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: var(--light-gold);
+            font-size: 0.75em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .nav-tab:active {
+            transform: scale(0.95);
+        }
+
+        .nav-tab.active {
+            background: var(--primary-gold);
+            color: var(--deep-green);
+        }
+
+        .nav-tab-icon {
+            font-size: 1.2em;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Style */
+        .card {
+            background: linear-gradient(135deg, var(--dark-green), var(--deep-green));
+            border: 2px solid var(--primary-gold);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            color: var(--primary-gold);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--light-gold);
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
+            font-size: 1.1em;
+            background: var(--deep-green);
+            color: var(--light-gold);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--light-gold);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: var(--primary-gold);
+            color: var(--deep-green);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--deep-green);
+        }
+
+        .btn-secondary {
+            background: var(--dark-green);
+            color: var(--light-gold);
+            border: 2px solid var(--primary-gold);
+        }
+
+        /* Bet Amount Input */
+        .amount-input-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .amount-input-container .currency-symbol {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            color: var(--light-gold);
+            font-size: 1.2em;
+        }
+
+        .amount-input-container input {
+            padding-left: 45px;
+            font-size: 1.5em;
+            text-align: right;
+            height: 60px;
+        }
+
+        /* Quick Bet Buttons */
+        .quick-bets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .quick-bet-btn {
+            padding: 12px;
+            border: 2px solid var(--primary-gold);
+            border-radius: 8px;
+            background: var(--dark-green);
+            color: var(--light-gold);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-bet-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quick-bet-btn.selected {
+            background: var(--primary-gold);
+            color: var(--deep-green);
+        }
+
+        /* Bet Type Cards */
+        .bet-type-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .bet-type-card {
+            padding: 20px;
+            border: 3px solid;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .bet-type-card:active {
+            transform: scale(0.98);
+        }
+
+        .bet-type-card.player {
+            background: var(--deep-green);
+            border-color: var(--blue);
+        }
+
+        .bet-type-card.player.selected {
+            background: var(--blue);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .bet-type-card.banker {
+            background: var(--deep-green);
+            border-color: var(--danger);
+        }
+
+        .bet-type-card.banker.selected {
+            background: var(--danger);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .bet-type-card.tie {
+            background: var(--deep-green);
+            border-color: var(--success);
+        }
+
+        .bet-type-card.tie.selected {
+            background: linear-gradient(135deg, #059669, #10B981);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .bet-type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .bet-type-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bet-type-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+
+        .bet-type-card.player .bet-type-icon {
+            background: rgba(59, 130, 246, 0.3);
+        }
+
+        .bet-type-card.player.selected .bet-type-icon {
+            background: rgba(29, 78, 216, 0.5);
+        }
+
+        .bet-type-card.banker .bet-type-icon {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .bet-type-card.banker.selected .bet-type-icon {
+            background: rgba(185, 28, 28, 0.5);
+        }
+
+        .bet-type-card.tie .bet-type-icon {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .bet-type-card.tie.selected .bet-type-icon {
+            background: rgba(5, 150, 105, 0.5);
+        }
+
+        .bet-type-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .bet-type-payout {
+            font-size: 0.85em;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .bet-type-check {
+            font-size: 1.5em;
+        }
+
+        /* TIE Multipliers */
+        .tie-multipliers {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .multiplier-btn {
+            padding: 12px 8px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 0.9em;
+        }
+
+        .multiplier-btn:active {
+            transform: scale(0.95);
+        }
+
+        .multiplier-btn.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            ring: 2px solid white;
+        }
+
+        .multiplier-btn.mult-4 { background: linear-gradient(135deg, #2563EB, #1E40AF); }
+        .multiplier-btn.mult-6 { background: linear-gradient(135deg, #7C3AED, #6D28D9); }
+        .multiplier-btn.mult-10 { background: linear-gradient(135deg, #DB2777, #BE185D); }
+        .multiplier-btn.mult-25 { background: linear-gradient(135deg, #EA580C, #C2410C); }
+        .multiplier-btn.mult-88 { background: linear-gradient(135deg, #DC2626, #991B1B); }
+
+        /* Result Buttons */
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+            animation: scale-in 0.3s ease;
+        }
+
+        .result-btn {
+            padding: 25px;
+            border: 3px solid;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .result-btn.win {
+            background: var(--deep-green);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .result-btn.loss {
+            background: var(--deep-green);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .result-btn.win:active {
+            background: var(--success);
+            color: white;
+            transform: scale(0.95);
+        }
+
+        .result-btn.loss:active {
+            background: var(--danger);
+            color: white;
+            transform: scale(0.95);
+        }
+
+        /* Statistics Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--deep-green);
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: var(--light-gold);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--primary-gold);
+        }
+
+        /* Streak Display */
+        .streak-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .streak-card {
+            background: var(--deep-green);
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .streak-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .streak-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary-gold);
+            margin-bottom: 5px;
+        }
+
+        .streak-label {
+            font-size: 0.9em;
+            color: var(--light-gold);
+        }
+
+        /* History List */
+        .history-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: var(--deep-green);
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .history-item.win {
+            border-left: 5px solid var(--success);
+        }
+
+        .history-item.loss {
+            border-left: 5px solid var(--danger);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-bet-type {
+            font-weight: bold;
+            color: var(--primary-gold);
+            font-size: 1.1em;
+        }
+
+        .history-result {
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .history-result.win {
+            background: var(--success);
+            color: white;
+        }
+
+        .history-result.loss {
+            background: var(--danger);
+            color: white;
+        }
+
+        .history-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: var(--light-gold);
+            margin-bottom: 5px;
+        }
+
+        .history-delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        /* Chart */
+        .chart-container {
+            background: var(--deep-green);
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Filter Buttons */
+        .filter-btn.active {
+            background: var(--gold) !important;
+            color: var(--primary-dark) !important;
+            font-weight: 700;
+        }
+
+        .filter-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+            transition: all 0.2s;
+        }
+
+        /* Stop Loss Settings */
+        .stop-loss-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--deep-green);
+            border: 2px solid var(--primary-gold);
+            transition: 0.3s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--primary-gold);
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .alert-box {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        .alert-box.danger {
+            background: rgba(220, 53, 69, 0.2);
+            border: 2px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .alert-box.success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 2px solid var(--success);
+            color: var(--success);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* 30-Day Plan */
+        .plan-summary {
+            background: var(--deep-green);
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .plan-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .plan-row:last-child {
+            border-bottom: none;
+            font-size: 1.1em;
+        }
+
+        .plan-preview {
+            margin-top: 20px;
+        }
+
+        .plan-day-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 2px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .plan-day-card.current {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--primary-gold);
+            border-width: 3px;
+        }
+
+        .plan-day-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            background: rgba(212, 175, 55, 0.2);
+            color: var(--primary-gold);
+        }
+
+        .plan-day-card.current .plan-day-number {
+            background: var(--primary-gold);
+            color: var(--deep-green);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--dark-green), var(--deep-green));
+            border: 3px solid var(--primary-gold);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            color: var(--primary-gold);
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Alert Toast */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .toast {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            animation: slideDown 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .toast.error {
+            background: var(--danger);
+            color: white;
+        }
+
+        .toast.info {
+            background: var(--blue);
+            color: white;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .balance-amount {
+                font-size: 2.5em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tab {
+                font-size: 0.65em;
+                padding: 10px 5px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--deep-green);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gold);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-title">
+                    <div class="crown-icon">👑</div>
+                    <div>
+                        <h1>Rei do Bacbo</h1>
+                        <div class="subtitle">Gestão Profissional</div>
+                    </div>
+                </div>
+                <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="settingsPanel" class="settings-panel">
+            <div class="card">
+                <div class="card-title">⚙️ Configurações</div>
+                <div class="form-group">
+                    <label class="form-label">Banca Inicial</label>
+                    <input type="number" id="settingsInitialBalance" class="form-input" step="0.01" min="0">
+                </div>
+                <button class="btn btn-primary" onclick="updateInitialBalance()">Atualizar Banca</button>
+                <button class="btn btn-danger" onclick="confirmReset()">Resetar Banca</button>
+            </div>
+        </div>
+
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Banca Atual</div>
+            <div class="balance-amount" id="currentBalance">R$ 0,00</div>
+            <div class="balance-profit" id="profitDisplay"></div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('bet')">
+                <span class="nav-tab-icon">👑</span>
+                <span>Apostar</span>
+            </button>
+            <button class="nav-tab" onclick="showTab('history')">
+                <span class="nav-tab-icon">📜</span>
+                <span>Histórico</span>
+            </button>
+            <button class="nav-tab" onclick="showTab('stats')">
+                <span class="nav-tab-icon">📊</span>
+                <span>Stats</span>
+            </button>
+            <button class="nav-tab" onclick="showTab('stoploss')">
+                <span class="nav-tab-icon">⚙️</span>
+                <span>Stop</span>
+            </button>
+            <button class="nav-tab" onclick="showTab('plan')">
+                <span class="nav-tab-icon">📅</span>
+                <span>30D</span>
+            </button>
+        </div>
+
+        <!-- Bet Section -->
+        <div id="betSection" class="content-section active">
+            <!-- Amount -->
+            <div class="card">
+                <div class="card-title">💰 Valor da Aposta</div>
+                
+                <div class="amount-input-container">
+                    <span class="currency-symbol">R$</span>
+                    <input type="number" id="betAmount" class="form-input" placeholder="0.00" min="0" step="0.01">
+                </div>
+
+                <div class="form-label">Atalhos Rápidos</div>
+                <div class="quick-bets">
+                    <button class="quick-bet-btn" onclick="setQuickBetPercentage(0.03)">3%</button>
+                    <button class="quick-bet-btn" onclick="setQuickBetPercentage(0.05)">5%</button>
+                    <button class="quick-bet-btn" onclick="setQuickBetPercentage(0.10)">10%</button>
+                </div>
+            </div>
+
+            <!-- Bet Type Selection -->
+            <div class="card">
+                <div class="card-title">🎲 Selecione sua Aposta</div>
+                
+                <div class="bet-type-grid">
+                    <!-- PLAYER -->
+                    <div class="bet-type-card player" onclick="selectBetType('PLAYER')">
+                        <div class="bet-type-header">
+                            <div class="bet-type-info">
+                                <div class="bet-type-icon">👤</div>
+                                <div>
+                                    <div class="bet-type-name">PLAYER</div>
+                                    <div class="bet-type-payout">Pagamento: 1:1</div>
+                                </div>
+                            </div>
+                            <span class="bet-type-check">✓</span>
+                        </div>
+                    </div>
+
+                    <!-- BANKER -->
+                    <div class="bet-type-card banker" onclick="selectBetType('BANKER')">
+                        <div class="bet-type-header">
+                            <div class="bet-type-info">
+                                <div class="bet-type-icon">🏦</div>
+                                <div>
+                                    <div class="bet-type-name">BANKER</div>
+                                    <div class="bet-type-payout">Pagamento: 1:1</div>
+                                </div>
+                            </div>
+                            <span class="bet-type-check">✓</span>
+                        </div>
+                    </div>
+
+                    <!-- TIE -->
+                    <div class="bet-type-card tie" onclick="selectBetType('TIE')">
+                        <div class="bet-type-header">
+                            <div class="bet-type-info">
+                                <div class="bet-type-icon">🤝</div>
+                                <div>
+                                    <div class="bet-type-name">TIE (EMPATE)</div>
+                                    <div class="bet-type-payout">Selecione o multiplicador</div>
+                                </div>
+                            </div>
+                            <span class="bet-type-check">✓</span>
+                        </div>
+                        <div id="tieMultipliers" class="tie-multipliers" style="display: none;">
+                            <button class="multiplier-btn mult-4" onclick="selectMultiplier(4, event)">4x</button>
+                            <button class="multiplier-btn mult-6" onclick="selectMultiplier(6, event)">6x</button>
+                            <button class="multiplier-btn mult-10" onclick="selectMultiplier(10, event)">10x</button>
+                            <button class="multiplier-btn mult-25" onclick="selectMultiplier(25, event)">25x</button>
+                            <button class="multiplier-btn mult-88" onclick="selectMultiplier(88, event)">88x</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Buttons -->
+            <div id="resultButtons" style="display: none;">
+                <div class="result-grid">
+                    <button class="result-btn win" onclick="recordBet('WIN')">
+                        ✅ GANHOU
+                    </button>
+                    <button class="result-btn loss" onclick="recordBet('LOSS')">
+                        ❌ PERDEU
+                    </button>
+                </div>
+            </div>
+
+            <!-- Initial Setup -->
+            <div id="initialSetup" class="card" style="display: none;">
+                <div class="card-title">🎰 Configuração Inicial</div>
+                <div class="form-group">
+                    <label class="form-label">Banca Inicial</label>
+                    <input type="number" id="initialBankroll" class="form-input" placeholder="Digite sua banca inicial" min="0" step="0.01">
+                </div>
+                <button class="btn btn-success" onclick="setupBankroll()">🚀 Iniciar</button>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div id="historySection" class="content-section">
+            <div class="card">
+                <div class="card-title">📜 Histórico de Apostas</div>
+                <button class="btn btn-success" onclick="exportHistory()" style="margin-bottom: 15px;">
+                    📥 Exportar CSV
+                </button>
+                <div class="filter-buttons" style="display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <button class="filter-btn active" onclick="filterHistory('all')" data-filter="all" style="padding: 8px 12px; border: 2px solid var(--gold); background: var(--primary-dark); color: var(--gold); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">Todos</button>
+                    <button class="filter-btn" onclick="filterHistory('PLAYER')" data-filter="PLAYER" style="padding: 8px 12px; border: 2px solid var(--gold); background: var(--primary-dark); color: var(--gold); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">Player</button>
+                    <button class="filter-btn" onclick="filterHistory('BANKER')" data-filter="BANKER" style="padding: 8px 12px; border: 2px solid var(--gold); background: var(--primary-dark); color: var(--gold); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">Banker</button>
+                    <button class="filter-btn" onclick="filterHistory('TIE')" data-filter="TIE" style="padding: 8px 12px; border: 2px solid var(--gold); background: var(--primary-dark); color: var(--gold); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">Tie</button>
+                    <button class="filter-btn" onclick="filterHistory('WIN')" data-filter="WIN" style="padding: 8px 12px; border: 2px solid var(--success); background: var(--primary-dark); color: var(--success); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">Vitórias</button>
+                    <button class="filter-btn" onclick="filterHistory('LOSS')" data-filter="LOSS" style="padding: 8px 12px; border: 2px solid var(--danger); background: var(--primary-dark); color: var(--danger); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;">Derrotas</button>
+                </div>
+                <div id="historyList" class="history-list">
+                    <p style="text-align: center; color: var(--light-gold);">Nenhuma aposta registrada.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div id="statsSection" class="content-section">
+            <div class="card">
+                <div class="card-title">📈 Estatísticas Gerais</div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total de Apostas</div>
+                        <div class="stat-value" id="totalBets">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Vitórias</div>
+                        <div class="stat-value" id="totalWins" style="color: var(--success);">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Derrotas</div>
+                        <div class="stat-value" id="totalLosses" style="color: var(--danger);">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Win Rate</div>
+                        <div class="stat-value" id="winRate">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Aposta Média</div>
+                        <div class="stat-value" id="avgBet">R$ 0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Lucro/Prejuízo</div>
+                        <div class="stat-value" id="totalProfit">R$ 0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">ROI</div>
+                        <div class="stat-value" id="roi">0%</div>
+                    </div>
+                </div>
+
+                <div class="streak-display">
+                    <div class="streak-card">
+                        <div class="streak-icon">🔥</div>
+                        <div class="streak-value" id="currentStreak">0</div>
+                        <div class="streak-label">Sequência Atual</div>
+                    </div>
+                    <div class="streak-card">
+                        <div class="streak-icon">⭐</div>
+                        <div class="streak-value" id="bestStreak">0</div>
+                        <div class="streak-label">Melhor Sequência</div>
+                    </div>
+                    <div class="streak-card">
+                        <div class="streak-icon">⏱️</div>
+                        <div class="streak-value" id="sessionTime">0h 0m</div>
+                        <div class="streak-label">Tempo de Sessão</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 Gráfico de Performance</div>
+                <div class="chart-container">
+                    <canvas id="performanceChart" class="chart-canvas" width="600" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stop Loss Section -->
+        <div id="stoplossSection" class="content-section">
+            <div class="card">
+                <div class="card-title">⚠️ Stop Loss / Stop Gain</div>
+                
+                <div class="stop-loss-toggle">
+                    <span style="font-weight: bold;">Ativar Stop Loss</span>
+                    <label class="switch">
+                        <input type="checkbox" id="stopLossEnabled" onchange="toggleStopLoss()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="stopLossSettings" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">⚠️ Perda Máxima (R$)</label>
+                        <input type="number" id="maxLoss" class="form-input" min="0" step="1" value="100">
+                        <small id="maxLossPercent" style="color: var(--light-gold); font-size: 0.85em;"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">🎯 Lucro Máximo (R$)</label>
+                        <input type="number" id="maxProfit" class="form-input" min="0" step="1" value="200">
+                        <small id="maxProfitPercent" style="color: var(--light-gold); font-size: 0.85em;"></small>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveStopLoss()">Salvar Configurações</button>
+
+                    <div id="stopLossAlerts"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 30-Day Plan Section -->
+        <div id="planSection" class="content-section">
+            <div class="card">
+                <div class="card-title">📅 Plano de Gestão 30 Dias</div>
+                
+                <div class="form-group">
+                    <label class="form-label">Valor Base Inicial (R$)</label>
+                    <input type="number" id="planBaseAmount" class="form-input" value="10" min="1" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tipo de Progressão</label>
+                    <div class="quick-bets">
+                        <button class="quick-bet-btn selected" onclick="selectProgressionType('fixed')">Fixa (R$)</button>
+                        <button class="quick-bet-btn" onclick="selectProgressionType('percentage')">Percentual (%)</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" id="progressionValueLabel">Aumento Diário (R$)</label>
+                    <input type="number" id="progressionValue" class="form-input" value="2" min="0" step="0.1">
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 10px; padding: 15px; background: rgba(212, 175, 55, 0.1); border-radius: 10px; border: 2px solid rgba(212, 175, 55, 0.3);">
+                    <label class="switch">
+                        <input type="checkbox" id="roundPlanValues" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <label for="roundPlanValues" style="color: var(--light-gold); font-weight: bold; cursor: pointer; margin: 0;">
+                        🔢 Arredondar valores para números inteiros
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" onclick="generatePlan()">📊 Gerar Plano</button>
+                <button class="btn btn-success" onclick="exportPlan()">📥 Baixar Planilha (CSV)</button>
+
+                <div id="planSummary" class="plan-summary" style="display: none;"></div>
+
+                <div id="planPreview" class="plan-preview" style="display: none;">
+                    <h3 style="color: var(--primary-gold); margin: 20px 0 15px 0; font-size: 1.2em;">📅 Preview - Primeiros 7 Dias</h3>
+                    <div id="planDaysList"></div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid var(--primary-gold);">
+                        <div style="display: flex; justify-content: space-between; font-size: 1.1em;">
+                            <span style="color: var(--light-gold);">Dia 30:</span>
+                            <span id="day30Amount" style="color: var(--primary-gold); font-weight: bold;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">Confirmação</div>
+            <div id="modalMessage"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeModal()" style="flex: 1;">Cancelar</button>
+                <button class="btn btn-danger" id="modalConfirm" style="flex: 1;">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
