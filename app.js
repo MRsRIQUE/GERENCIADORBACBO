@@ -431,10 +431,10 @@ function updateHistory() {
         const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         const multiplierText = bet.multiplier ? ` (${bet.multiplier}x)` : '';
         const galeIndicator = bet.isGale ? ' 🎯 <span style="background: rgba(59, 130, 246, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">GALE</span>' : '';
-        const galeAmountInfo = bet.isGale ? `<div style="font-size: 0.85em; color: var(--blue); margin-top: 5px;">💰 Original: R$ ${bet.galeOriginal.toFixed(2)} → Dobrado: R$ ${bet.amount.toFixed(2)}</div>` : '';
+        const galeAmountInfo = bet.isGale && bet.galeOriginal ? `<div style="font-size: 0.85em; color: var(--blue); margin-top: 5px;">💰 Original: R$ ${bet.galeOriginal.toFixed(2)} → Dobrado: R$ ${bet.amount.toFixed(2)}</div>` : '';
         
         return `
-            <div class="history-item ${bet.result.toLowerCase()}">
+            <div class="history-item" style="background: ${bet.result === 'WIN' ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)'}; border-left: 4px solid ${bet.result === 'WIN' ? 'var(--success)' : 'var(--danger)'}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
                 <div class="history-header">
                     <span class="history-bet-type">${bet.type}${multiplierText}${galeIndicator}</span>
                     <span class="history-result ${bet.result.toLowerCase()}">
@@ -1006,6 +1006,16 @@ function exportPlan() {
     const rounded = window.planRounded || false;
     const recomendacaoEntrada = window.planRecomendacaoEntrada || 0;
     const recomendacaoEmpate = window.planRecomendacaoEmpate || 0;
+    
+    // Calcular percentual de entrada
+    let descricaoPercentual;
+    if (plan[0].amount >= 5000) {
+        descricaoPercentual = '1%';
+    } else if (plan[0].amount >= 1000) {
+        descricaoPercentual = '2.5%';
+    } else {
+        descricaoPercentual = '5%';
+    }
     
     const today = new Date();
     const totalInvestment = plan.reduce((sum, item) => sum + item.amount, 0);
