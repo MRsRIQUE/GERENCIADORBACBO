@@ -847,8 +847,8 @@ function generatePlan() {
     let amount = baseAmount;
     
     for (let day = 1; day <= 30; day++) {
-        // Sempre arredonda para inteiro
-        const dayAmount = Math.round(amount);
+        // Arredonda SEMPRE para múltiplo de 5
+        const dayAmount = Math.round(amount / 5) * 5;
         
         plan.push({
             day,
