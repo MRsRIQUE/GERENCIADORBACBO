@@ -847,8 +847,8 @@ function generatePlan() {
     let amount = baseAmount;
     
     for (let day = 1; day <= 30; day++) {
-        // Arredonda ou mantém decimais
-        const dayAmount = roundValues ? Math.round(amount) : parseFloat(amount.toFixed(2));
+        // Sempre arredonda para inteiro
+        const dayAmount = Math.round(amount);
         
         plan.push({
             day,
@@ -949,7 +949,7 @@ function generatePlan() {
         </div>
         <div style="border-top: 2px solid var(--blue); padding-top: 15px; margin-top: 15px;">
             <div class="plan-row">
-                <span style="color: var(--blue); font-weight: bold; font-size: 1.1em;">🎯 Recomendação de Entradas (${descricaoPercentual} da Banca)</span>
+                <span style="color: var(--blue); font-weight: bold; font-size: 1em; word-wrap: break-word;">🎯 Recomendação de Entradas<br>(${descricaoPercentual} da Banca)</span>
             </div>
             <div class="plan-row" style="margin-top: 10px;">
                 <span>💎 Entrada Principal (Player/Banker):</span>
@@ -957,7 +957,7 @@ function generatePlan() {
             </div>
             ${recomendacaoEmpate > 0 ? `
             <div class="plan-row">
-                <span>🎲 Entrada Empate (TIE) - 10% da principal:</span>
+                <span>🎲 Empate (TIE) - 10%:</span>
                 <span style="color: var(--warning); font-weight: bold; font-size: 1.2em;">R$ ${recomendacaoEmpate}</span>
             </div>
             ` : `
