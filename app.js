@@ -844,8 +844,22 @@ function generatePlan() {
         return Math.round(value / 100) * 100;
     }
     
-    // Calcular recomendações de entrada (5% da banca)
-    const recomendacaoEntrada = roundToChip(plan[0].amount * 0.05);
+    // Calcular recomendações de entrada com percentual variável
+    let percentualEntrada;
+    let descricaoPercentual;
+    
+    if (plan[0].amount >= 5000) {
+        percentualEntrada = 0.01; // 1% para bancas acima de R$5000
+        descricaoPercentual = '1%';
+    } else if (plan[0].amount >= 1000) {
+        percentualEntrada = 0.025; // 2.5% para bancas entre R$1000 e R$5000
+        descricaoPercentual = '2.5%';
+    } else {
+        percentualEntrada = 0.05; // 5% para bancas abaixo de R$1000
+        descricaoPercentual = '5%';
+    }
+    
+    const recomendacaoEntrada = roundToChip(plan[0].amount * percentualEntrada);
     const recomendacaoEmpate = recomendacaoEntrada <= 15 ? 0 : roundToChip(recomendacaoEntrada * 0.1);
     
     // Mostrar resumo com lucro total
@@ -868,7 +882,7 @@ function generatePlan() {
         </div>
         <div style="border-top: 2px solid var(--blue); padding-top: 15px; margin-top: 15px;">
             <div class="plan-row">
-                <span style="color: var(--blue); font-weight: bold; font-size: 1.1em;">🎯 Recomendação de Entradas (5% da Banca)</span>
+                <span style="color: var(--blue); font-weight: bold; font-size: 1.1em;">🎯 Recomendação de Entradas (${descricaoPercentual} da Banca)</span>
             </div>
             <div class="plan-row" style="margin-top: 10px;">
                 <span>💎 Entrada Principal (Player/Banker):</span>
@@ -958,7 +972,7 @@ function exportPlan() {
     
     // Tabela de Recomendação de Entradas
     csv += '┌─────────────────────────────────────────────────────────┐\n';
-    csv += '│       RECOMENDAÇÃO DE ENTRADAS (5% da Banca)           │\n';
+    csv += `│     RECOMENDAÇÃO DE ENTRADAS (${descricaoPercentual} da Banca)${' '.repeat(Math.max(0, 13 - descricaoPercentual.length))}│\n`;
     csv += '├─────────────────────────────────────────────────────────┤\n';
     csv += `│ 💎 Entrada Principal:        R$ ${String(recomendacaoEntrada).padEnd(17)}│\n`;
     csv += `│    (Player ou Banker)                                   │\n`;
