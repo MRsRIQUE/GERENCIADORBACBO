@@ -1296,6 +1296,19 @@
                     <button class="quick-bet-btn" onclick="setQuickBetPercentage(0.05)">5%</button>
                     <button class="quick-bet-btn" onclick="setQuickBetPercentage(0.10)">10%</button>
                 </div>
+
+                <div style="margin-top: 15px; padding: 15px; background: rgba(212, 175, 55, 0.1); border-radius: 10px; border: 2px solid rgba(212, 175, 55, 0.3);">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="galeCheckbox" onchange="handleGaleChange()" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-gold);">
+                        <span style="font-weight: bold; color: var(--primary-gold); font-size: 1.1em;">🎯 Gale? (Dobrar entrada)</span>
+                    </label>
+                    <div id="galeInfo" style="display: none; margin-top: 10px; padding: 10px; background: rgba(59, 130, 246, 0.2); border-radius: 8px; border-left: 3px solid var(--blue);">
+                        <div style="font-size: 0.9em; color: var(--light-gold);">
+                            <div style="margin-bottom: 5px;">📊 <strong>Valor dobrado:</strong> <span id="galeDoubledValue">R$ 0</span></div>
+                            <div><strong>💰 Total investido:</strong> <span id="galeTotalValue">R$ 0</span></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Bet Type Selection -->

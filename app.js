@@ -14,7 +14,9 @@ let appState = {
     progressionType: 'fixed',
     initialized: false,
     sessionStart: null,
-    historyFilter: 'all'
+    historyFilter: 'all',
+    galeEnabled: false,
+    galeOriginalAmount: 0
 };
 
 // Initialize App
@@ -89,6 +91,53 @@ function setQuickBetPercentage(percentage) {
     const amount = (appState.balance * percentage).toFixed(2);
     document.getElementById('betAmount').value = amount;
     appState.currentBetAmount = parseFloat(amount);
+    updateGaleInfo();
+}
+
+// Handle Gale Change
+function handleGaleChange() {
+    const checkbox = document.getElementById('galeCheckbox');
+    const galeInfo = document.getElementById('galeInfo');
+    const betAmountInput = document.getElementById('betAmount');
+    
+    if (checkbox.checked) {
+        // Ativar gale - salvar valor original e dobrar
+        appState.galeEnabled = true;
+        appState.galeOriginalAmount = parseFloat(betAmountInput.value) || 0;
+        
+        if (appState.galeOriginalAmount > 0) {
+            const doubledAmount = appState.galeOriginalAmount * 2;
+            betAmountInput.value = doubledAmount.toFixed(2);
+            appState.currentBetAmount = doubledAmount;
+            galeInfo.style.display = 'block';
+            updateGaleInfo();
+        } else {
+            showToast('Digite um valor de aposta primeiro!', 'error');
+            checkbox.checked = false;
+            appState.galeEnabled = false;
+        }
+    } else {
+        // Desativar gale - voltar ao valor original
+        appState.galeEnabled = false;
+        if (appState.galeOriginalAmount > 0) {
+            betAmountInput.value = appState.galeOriginalAmount.toFixed(2);
+            appState.currentBetAmount = appState.galeOriginalAmount;
+        }
+        galeInfo.style.display = 'none';
+        appState.galeOriginalAmount = 0;
+    }
+}
+
+// Update Gale Info Display
+function updateGaleInfo() {
+    if (appState.galeEnabled) {
+        const original = appState.galeOriginalAmount;
+        const doubled = original * 2;
+        const total = original + doubled;
+        
+        document.getElementById('galeDoubledValue').textContent = `R$ ${doubled.toFixed(2)}`;
+        document.getElementById('galeTotalValue').textContent = `R$ ${total.toFixed(2)}`;
+    }
 }
 
 // Select Bet Type
@@ -193,7 +242,9 @@ function recordBet(result) {
         result: result,
         profit: profit,
         multiplier: betType === 'TIE' ? appState.currentMultiplier : null,
-        balance: appState.balance + profit
+        balance: appState.balance + profit,
+        isGale: appState.galeEnabled,
+        galeOriginal: appState.galeEnabled ? appState.galeOriginalAmount : null
     };
 
     appState.bets.unshift(bet);
@@ -201,15 +252,28 @@ function recordBet(result) {
     
     saveData();
     updateUI();
-    resetBetForm(amount); // Passa o valor da aposta para manter
+    
+    // Reset gale após aposta
+    if (appState.galeEnabled) {
+        document.getElementById('galeCheckbox').checked = false;
+        appState.galeEnabled = false;
+        document.getElementById('galeInfo').style.display = 'none';
+    }
+    
+    resetBetForm(appState.galeOriginalAmount || amount); // Volta ao valor original se foi gale
 
     // Show toast
     if (result === 'WIN') {
         const multiplierText = betType === 'TIE' ? ` (${appState.currentMultiplier}x)` : '';
-        showToast(`Vitória! +R$ ${profit.toFixed(2)}${multiplierText}`, 'success');
+        const galeText = bet.isGale ? ' 🎯 GALE!' : '';
+        showToast(`Vitória! +R$ ${profit.toFixed(2)}${multiplierText}${galeText}`, 'success');
     } else {
-        showToast(`Derrota: -R$ ${amount.toFixed(2)}`, 'error');
+        const galeText = bet.isGale ? ' (Gale)' : '';
+        showToast(`Derrota: -R$ ${amount.toFixed(2)}${galeText}`, 'error');
     }
+    
+    // Reset gale state
+    appState.galeOriginalAmount = 0;
 
     // Check alerts after bet
     checkStopLossAlerts();
@@ -366,11 +430,13 @@ function updateHistory() {
         const formattedDate = date.toLocaleDateString('pt-BR');
         const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         const multiplierText = bet.multiplier ? ` (${bet.multiplier}x)` : '';
+        const galeIndicator = bet.isGale ? ' 🎯 <span style="background: rgba(59, 130, 246, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">GALE</span>' : '';
+        const galeAmountInfo = bet.isGale ? `<div style="font-size: 0.85em; color: var(--blue); margin-top: 5px;">💰 Original: R$ ${bet.galeOriginal.toFixed(2)} → Dobrado: R$ ${bet.amount.toFixed(2)}</div>` : '';
         
         return `
             <div class="history-item ${bet.result.toLowerCase()}">
                 <div class="history-header">
-                    <span class="history-bet-type">${bet.type}${multiplierText}</span>
+                    <span class="history-bet-type">${bet.type}${multiplierText}${galeIndicator}</span>
                     <span class="history-result ${bet.result.toLowerCase()}">
                         ${bet.result === 'WIN' ? '✅ VITÓRIA' : '❌ DERROTA'}
                     </span>
@@ -381,6 +447,7 @@ function updateHistory() {
                         ${bet.profit >= 0 ? '+' : ''}R$ ${bet.profit.toFixed(2)}
                     </span>
                 </div>
+                ${galeAmountInfo}
                 <div class="history-details">
                     <span>${formattedDate} ${formattedTime}</span>
                     <span>Saldo: R$ ${bet.balance.toFixed(2)}</span>
