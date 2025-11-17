@@ -682,7 +682,6 @@ function generatePlan() {
     
     const plan = [];
     let amount = baseAmount;
-    let totalProfit = 0;
     
     for (let day = 1; day <= 30; day++) {
         // Arredonda ou mantém decimais
@@ -693,14 +692,15 @@ function generatePlan() {
             amount: dayAmount
         });
         
-        totalProfit += dayAmount;
-        
         if (appState.progressionType === 'fixed') {
             amount += progressionValue;
         } else {
             amount *= (1 + (progressionValue / 100));
         }
     }
+    
+    // Calcular lucro total corretamente: diferença entre dia 30 e dia 1
+    const totalProfit = plan[29].amount - plan[0].amount;
     
     // Show preview
     const preview = document.getElementById('planPreview');
@@ -724,6 +724,34 @@ function generatePlan() {
     const day30Amount = roundValues ? plan[29].amount : plan[29].amount.toFixed(2);
     document.getElementById('day30Amount').textContent = `R$ ${day30Amount}`;
     
+    // Calcular investimento total (soma de todos os dias)
+    const totalInvestment = plan.reduce((sum, item) => sum + item.amount, 0);
+    
+    // Função para arredondar para valores de fichas (5, 10, 25, 50, 100, etc)
+    function roundToChip(value) {
+        const chips = [5, 10, 25, 50, 100, 250, 500, 1000];
+        
+        // Se valor menor que 5, retorna 5
+        if (value < 5) return 5;
+        
+        // Encontra a ficha mais próxima
+        for (let i = 0; i < chips.length - 1; i++) {
+            if (value >= chips[i] && value < chips[i + 1]) {
+                // Arredonda para a ficha mais próxima
+                const diff1 = value - chips[i];
+                const diff2 = chips[i + 1] - value;
+                return diff1 <= diff2 ? chips[i] : chips[i + 1];
+            }
+        }
+        
+        // Se maior que 1000, arredonda para múltiplo de 100
+        return Math.round(value / 100) * 100;
+    }
+    
+    // Calcular recomendações de entrada (5% da banca)
+    const recomendacaoEntrada = roundToChip(plan[0].amount * 0.05);
+    const recomendacaoEmpate = recomendacaoEntrada <= 15 ? 0 : roundToChip(recomendacaoEntrada * 0.1);
+    
     // Mostrar resumo com lucro total
     const summaryDiv = document.getElementById('planSummary');
     summaryDiv.innerHTML = `
@@ -739,8 +767,41 @@ function generatePlan() {
             <span style="color: var(--primary-gold); font-weight: bold;">R$ ${day30Amount}</span>
         </div>
         <div class="plan-row" style="border-top: 2px solid var(--primary-gold); padding-top: 15px; margin-top: 10px;">
-            <span style="font-size: 1.1em;"><strong>💰 Lucro Total Projetado (30 dias):</strong></span>
+            <span style="font-size: 1.1em;"><strong>💰 Crescimento Projetado (Dia 30 - Dia 1):</strong></span>
             <span style="color: var(--success); font-weight: bold; font-size: 1.3em;">R$ ${roundValues ? Math.round(totalProfit) : totalProfit.toFixed(2)}</span>
+        </div>
+        <div style="border-top: 2px solid var(--blue); padding-top: 15px; margin-top: 15px;">
+            <div class="plan-row">
+                <span style="color: var(--blue); font-weight: bold; font-size: 1.1em;">🎯 Recomendação de Entradas (5% da Banca)</span>
+            </div>
+            <div class="plan-row" style="margin-top: 10px;">
+                <span>💎 Entrada Principal (Player/Banker):</span>
+                <span style="color: var(--primary-gold); font-weight: bold; font-size: 1.2em;">R$ ${recomendacaoEntrada}</span>
+            </div>
+            ${recomendacaoEmpate > 0 ? `
+            <div class="plan-row">
+                <span>🎲 Entrada Empate (TIE) - 10% da principal:</span>
+                <span style="color: var(--warning); font-weight: bold; font-size: 1.2em;">R$ ${recomendacaoEmpate}</span>
+            </div>
+            ` : `
+            <div class="plan-row">
+                <span style="color: var(--warning);">🎲 Empate (TIE):</span>
+                <span style="color: var(--danger); font-weight: bold;">Não recomendado (entrada ≤ R$ 15)</span>
+            </div>
+            `}
+            <div style="margin-top: 10px; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid var(--blue);">
+                <div style="color: var(--light-gold); font-size: 0.9em; line-height: 1.6;">
+                    <strong>💡 Gestão Conservadora:</strong><br>
+                    • Aposte <strong>R$ ${recomendacaoEntrada}</strong> em Player ou Banker<br>
+                    ${recomendacaoEmpate > 0 ? 
+                        `• Aposte <strong>R$ ${recomendacaoEmpate}</strong> no Empate (proteção)<br>
+                        • Total por rodada: <strong>R$ ${recomendacaoEntrada + recomendacaoEmpate}</strong>` :
+                        `• <strong>NÃO aposte</strong> no Empate (entrada muito baixa)<br>
+                        • Total por rodada: <strong>R$ ${recomendacaoEntrada}</strong>`
+                    }<br>
+                    • Valores arredondados para fichas válidas
+                </div>
+            </div>
         </div>
     `;
     summaryDiv.style.display = 'block';
@@ -751,6 +812,8 @@ function generatePlan() {
     window.currentPlan = plan;
     window.planTotalProfit = totalProfit;
     window.planRounded = roundValues;
+    window.planRecomendacaoEntrada = recomendacaoEntrada;
+    window.planRecomendacaoEmpate = recomendacaoEmpate;
     
     showToast('Plano gerado com sucesso! 📊', 'success');
 }
@@ -764,33 +827,97 @@ function exportPlan() {
     const plan = window.currentPlan;
     const totalProfit = window.planTotalProfit || 0;
     const rounded = window.planRounded || false;
+    const recomendacaoEntrada = window.planRecomendacaoEntrada || 0;
+    const recomendacaoEmpate = window.planRecomendacaoEmpate || 0;
     
-    let csv = 'REI DO BACBO - PLANO DE GESTÃO 30 DIAS\n\n';
-    csv += 'Dia,Data,Valor Base (R$)\n';
-
     const today = new Date();
+    const totalInvestment = plan.reduce((sum, item) => sum + item.amount, 0);
     
-    plan.forEach(item => {
+    // Cabeçalho
+    let csv = '========================================\n';
+    csv += '   REI DO BACBO - PLANO DE GESTÃO 30 DIAS\n';
+    csv += '   Gestão Profissional de Banca\n';
+    csv += `   Gerado em: ${today.toLocaleDateString('pt-BR')} às ${today.toLocaleTimeString('pt-BR')}\n`;
+    csv += '========================================\n\n';
+    
+    // Tabela de Configuração
+    csv += '┌─────────────────────────────────────────────────────────┐\n';
+    csv += '│              CONFIGURAÇÃO DO PLANO                      │\n';
+    csv += '├─────────────────────────────────────────────────────────┤\n';
+    csv += `│ Tipo de Progressão:    ${appState.progressionType === 'fixed' ? 'Fixa (R$)        ' : 'Percentual (%)   '}│\n`;
+    csv += `│ Valor Base Inicial:    R$ ${String(rounded ? plan[0].amount : plan[0].amount.toFixed(2)).padEnd(21)}│\n`;
+    csv += `│ Incremento:            ${String(document.getElementById('progressionValue').value + (appState.progressionType === 'fixed' ? ' R$' : '%')).padEnd(29)}│\n`;
+    csv += `│ Valores Arredondados:  ${rounded ? 'Sim                 ' : 'Não                 '}│\n`;
+    csv += '└─────────────────────────────────────────────────────────┘\n\n';
+    
+    // Tabela de Resumo Financeiro
+    csv += '┌─────────────────────────────────────────────────────────┐\n';
+    csv += '│              RESUMO FINANCEIRO                          │\n';
+    csv += '├─────────────────────────────────────────────────────────┤\n';
+    csv += `│ Valor Inicial (Dia 1):       R$ ${String(rounded ? plan[0].amount : plan[0].amount.toFixed(2)).padEnd(17)}│\n`;
+    csv += `│ Valor Final (Dia 30):        R$ ${String(rounded ? plan[29].amount : plan[29].amount.toFixed(2)).padEnd(17)}│\n`;
+    csv += `│ Crescimento Projetado:       R$ ${String(rounded ? Math.round(totalProfit) : totalProfit.toFixed(2)).padEnd(17)}│\n`;
+    csv += `│ ROI Projetado:               ${String(((totalProfit / plan[0].amount) * 100).toFixed(1) + '%').padEnd(25)}│\n`;
+    csv += '└─────────────────────────────────────────────────────────┘\n\n';
+    
+    // Tabela de Recomendação de Entradas
+    csv += '┌─────────────────────────────────────────────────────────┐\n';
+    csv += '│       RECOMENDAÇÃO DE ENTRADAS (5% da Banca)           │\n';
+    csv += '├─────────────────────────────────────────────────────────┤\n';
+    csv += `│ 💎 Entrada Principal:        R$ ${String(recomendacaoEntrada).padEnd(17)}│\n`;
+    csv += `│    (Player ou Banker)                                   │\n`;
+    if (recomendacaoEmpate > 0) {
+        csv += `│ 🎲 Entrada Empate (TIE):     R$ ${String(recomendacaoEmpate).padEnd(17)}│\n`;
+        csv += `│    (10% da entrada principal)                           │\n`;
+        csv += `│ ─────────────────────────────────────────────────────── │\n`;
+        csv += `│ 💰 Total por Rodada:         R$ ${String(recomendacaoEntrada + recomendacaoEmpate).padEnd(17)}│\n`;
+    } else {
+        csv += `│ 🎲 Entrada Empate (TIE):     NÃO RECOMENDADO           │\n`;
+        csv += `│    (Entrada ≤ R$ 15)                                    │\n`;
+        csv += `│ ─────────────────────────────────────────────────────── │\n`;
+        csv += `│ 💰 Total por Rodada:         R$ ${String(recomendacaoEntrada).padEnd(17)}│\n`;
+    }
+    csv += '└─────────────────────────────────────────────────────────┘\n\n';
+    
+    // Tabela de Progressão Diária
+    csv += '┌──────────────────────────────────────────────────────────────────┐\n';
+    csv += '│              PROGRESSÃO DIÁRIA - 30 DIAS                         │\n';
+    csv += '├──────┬─────────────┬──────────────┬──────────────┬──────────────┤\n';
+    csv += '│ Dia  │    Data     │  Valor Base  │ Crescimento  │  % Inicial   │\n';
+    csv += '├──────┼─────────────┼──────────────┼──────────────┼──────────────┤\n';
+    
+    plan.forEach((item, index) => {
         const date = new Date(today);
         date.setDate(today.getDate() + item.day);
         const formattedDate = date.toLocaleDateString('pt-BR');
         const value = rounded ? item.amount : item.amount.toFixed(2);
+        const crescimento = rounded ? Math.round(item.amount - plan[0].amount) : (item.amount - plan[0].amount).toFixed(2);
+        const percentual = (((item.amount - plan[0].amount) / plan[0].amount) * 100).toFixed(1);
         
-        csv += `${item.day},${formattedDate},R$ ${value}\n`;
+        csv += `│  ${String(item.day).padStart(2)}  │ ${formattedDate} │  R$ ${String(value).padStart(8)} │  R$ ${String(crescimento).padStart(8)} │   ${String(percentual).padStart(6)}%  │\n`;
+        
+        // Separador a cada 5 dias (exceto no último)
+        if ((index + 1) % 5 === 0 && index < plan.length - 1) {
+            csv += '├──────┼─────────────┼──────────────┼──────────────┼──────────────┤\n';
+        }
     });
-
-    csv += '\n';
-    csv += '\nRESUMO\n';
-    csv += `Valor Inicial (Dia 1),R$ ${rounded ? plan[0].amount : plan[0].amount.toFixed(2)}\n`;
-    csv += `Valor Final (Dia 30),R$ ${rounded ? plan[29].amount : plan[29].amount.toFixed(2)}\n`;
-    csv += `LUCRO TOTAL PROJETADO (30 DIAS),R$ ${rounded ? Math.round(totalProfit) : totalProfit.toFixed(2)}\n`;
-    csv += `ROI Projetado,${((totalProfit / plan[0].amount) * 100).toFixed(1)}%\n`;
     
-    csv += '\nCONFIGURAÇÃO\n';
-    csv += `Tipo de Progressão,${appState.progressionType === 'fixed' ? 'Fixa (R$)' : 'Percentual (%)'}\n`;
-    csv += `Valor Base Inicial,R$ ${document.getElementById('planBaseAmount').value}\n`;
-    csv += `Incremento,${document.getElementById('progressionValue').value}${appState.progressionType === 'fixed' ? ' R$' : '%'}\n`;
-    csv += `Valores Arredondados,${rounded ? 'Sim' : 'Não'}\n`;
+    csv += '└──────┴─────────────┴──────────────┴──────────────┴──────────────┘\n\n';
+    
+    // Rodapé
+    csv += '========================================\n';
+    csv += '   INSTRUÇÕES DE USO:\n';
+    csv += '   • Siga o valor base de cada dia\n';
+    if (recomendacaoEmpate > 0) {
+        csv += `   • Aposte R$ ${recomendacaoEntrada} no Player/Banker\n`;
+        csv += `   • Aposte R$ ${recomendacaoEmpate} no Empate\n`;
+    } else {
+        csv += `   • Aposte R$ ${recomendacaoEntrada} no Player/Banker\n`;
+        csv += '   • NÃO aposte no Empate (entrada baixa)\n';
+    }
+    csv += '   • Respeite o Stop Loss/Gain\n';
+    csv += '   • Mantenha disciplina e controle\n';
+    csv += '========================================\n';
 
     downloadCSV(csv, `rei_do_bacbo_plano_30dias_${new Date().toISOString().split('T')[0]}.csv`);
     showToast('Plano exportado com sucesso! 📥', 'success');
