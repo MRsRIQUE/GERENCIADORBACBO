@@ -635,13 +635,109 @@ function checkStopLossAlerts() {
                 ⚠️ LIMITE DE PERDA ATINGIDO!
             </div>
         `;
+        showStopLossModal('STOP LOSS', currentProfit);
     } else if (currentProfit >= appState.stopLoss.maxProfit) {
         alertsDiv.innerHTML = `
             <div class="alert-box success">
                 🎯 META DE LUCRO ATINGIDA!
             </div>
         `;
+        showStopWinModal('STOP WIN', currentProfit);
     }
+}
+
+// Show Stop Loss Modal
+function showStopLossModal(title, profit) {
+    const existingModal = document.querySelector('.stop-modal');
+    if (existingModal) return; // Don't show multiple times
+    
+    const modal = document.createElement('div');
+    modal.className = 'stop-modal stop-loss-modal';
+    modal.innerHTML = `
+        <div class="stop-modal-content">
+            <div class="stop-modal-icon">⚠️</div>
+            <h2>${title} ATINGIDO!</h2>
+            <p class="stop-modal-value">Prejuízo: R$ ${Math.abs(profit).toFixed(2)}</p>
+            <p class="stop-modal-message">Recomendamos encerrar a sessão para proteger sua banca.</p>
+            <button onclick="closeStopModal()" class="stop-modal-btn">Entendi</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Play alert sound
+    playAlertSound('loss');
+    
+    // Auto-close after 10 seconds
+    setTimeout(() => {
+        if (document.body.contains(modal)) {
+            closeStopModal();
+        }
+    }, 10000);
+}
+
+// Show Stop Win Modal
+function showStopWinModal(title, profit) {
+    const existingModal = document.querySelector('.stop-modal');
+    if (existingModal) return; // Don't show multiple times
+    
+    const modal = document.createElement('div');
+    modal.className = 'stop-modal stop-win-modal';
+    modal.innerHTML = `
+        <div class="stop-modal-content">
+            <div class="stop-modal-icon">🎯</div>
+            <h2>${title} ATINGIDO!</h2>
+            <p class="stop-modal-value">Lucro: R$ ${profit.toFixed(2)}</p>
+            <p class="stop-modal-message">Parabéns! Você atingiu sua meta de lucro.</p>
+            <button onclick="closeStopModal()" class="stop-modal-btn">Entendi</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Play alert sound
+    playAlertSound('win');
+    
+    // Auto-close after 10 seconds
+    setTimeout(() => {
+        if (document.body.contains(modal)) {
+            closeStopModal();
+        }
+    }, 10000);
+}
+
+// Close Stop Modal
+function closeStopModal() {
+    const modal = document.querySelector('.stop-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => modal.remove(), 300);
+    }
+}
+
+// Play Alert Sound
+function playAlertSound(type) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    if (type === 'loss') {
+        // Descending tone for loss
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.3);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    } else {
+        // Ascending tone for win
+        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    }
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
 }
 
 // 30-Day Plan Functions
