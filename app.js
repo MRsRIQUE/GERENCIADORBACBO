@@ -248,12 +248,10 @@ function recordBet(result) {
         const multiplierInput = prompt('Qual foi o multiplicador do empate? (ex: 8)', '8');
         tieMultiplier = parseFloat(multiplierInput) || 8;
         
-        // Quando perde Player/Banker, volta 90% (perde 10% de comissão)
-        const mainBetReturn = amount * 0.9; // Volta 90%
-        const mainBetLoss = -(amount - mainBetReturn); // Perda líquida = 10%
-        const tieWin = tieAmount * tieMultiplier; // Ganhou no empate
-        profit = mainBetReturn + tieWin - amount; // Devolução + Ganho do empate - valor apostado
-        // Simplificando: profit = -amount*0.1 + tieAmount*multiplier
+        // Quando perde Player/Banker, volta 90%
+        const mainBetReturn = amount * 0.9; // R$ 13,50 (volta pra banca)
+        const tieWin = tieAmount * tieMultiplier; // R$ 20 (ganho do empate)
+        profit = mainBetReturn + tieWin; // R$ 13,50 + R$ 20 = R$ 33,50
         
     } else if (result === 'WIN') {
         if (betType === 'TIE') {
