@@ -167,6 +167,14 @@ function selectBetType(type) {
     const amount = parseFloat(document.getElementById('betAmount').value);
     if (amount > 0 && amount <= appState.balance) {
         document.getElementById('resultButtons').style.display = 'block';
+        
+        // Mostra botão de empate com recuperação apenas para PLAYER ou BANKER
+        const tieRecoveryBtn = document.getElementById('tieRecoveryButton');
+        if (type === 'PLAYER' || type === 'BANKER') {
+            tieRecoveryBtn.style.display = 'block';
+        } else {
+            tieRecoveryBtn.style.display = 'none';
+        }
     }
 }
 
@@ -223,7 +231,29 @@ function recordBet(result) {
 
     // Calculate profit
     let profit = 0;
-    if (result === 'WIN') {
+    let tieAmount = 0;
+    let tieMultiplier = 8; // Padrão 8x
+    
+    if (result === 'TIE_RECOVERY') {
+        // Empate ganhou, mas Player/Banker perdeu
+        // Usuário precisa informar quanto apostou no empate
+        const tieAmountInput = prompt('Quanto você apostou no EMPATE? (ex: 5)');
+        tieAmount = parseFloat(tieAmountInput);
+        
+        if (!tieAmount || tieAmount <= 0) {
+            showToast('Valor do empate inválido!', 'error');
+            return;
+        }
+        
+        const multiplierInput = prompt('Qual foi o multiplicador do empate? (ex: 8)', '8');
+        tieMultiplier = parseFloat(multiplierInput) || 8;
+        
+        // Perda do Player/Banker (amount) + Ganho do Empate (tieAmount * multiplier)
+        const mainBetLoss = -amount; // Perdeu a aposta principal
+        const tieWin = tieAmount * tieMultiplier; // Ganhou no empate
+        profit = mainBetLoss + tieWin;
+        
+    } else if (result === 'WIN') {
         if (betType === 'TIE') {
             profit = amount * appState.currentMultiplier;
         } else {
@@ -237,14 +267,15 @@ function recordBet(result) {
     const bet = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        type: betType,
+        type: result === 'TIE_RECOVERY' ? betType + ' + TIE' : betType,
         amount: amount,
-        result: result,
+        result: result === 'TIE_RECOVERY' ? 'TIE_RECOVERY' : result,
         profit: profit,
-        multiplier: betType === 'TIE' ? appState.currentMultiplier : null,
+        multiplier: betType === 'TIE' ? appState.currentMultiplier : (result === 'TIE_RECOVERY' ? tieMultiplier : null),
         balance: appState.balance + profit,
         isGale: appState.galeEnabled,
-        galeOriginal: appState.galeEnabled ? appState.galeOriginalAmount : null
+        galeOriginal: appState.galeEnabled ? appState.galeOriginalAmount : null,
+        tieAmount: result === 'TIE_RECOVERY' ? tieAmount : null
     };
 
     appState.bets.unshift(bet);
@@ -263,7 +294,10 @@ function recordBet(result) {
     resetBetForm(appState.galeOriginalAmount || amount); // Volta ao valor original se foi gale
 
     // Show toast
-    if (result === 'WIN') {
+    if (result === 'TIE_RECOVERY') {
+        const recoveryText = bet.isGale ? ' 🎯 GALE!' : '';
+        showToast(`🎲 Empate Recuperou! +R$ ${profit.toFixed(2)}${recoveryText}`, profit >= 0 ? 'success' : 'warning');
+    } else if (result === 'WIN') {
         const multiplierText = betType === 'TIE' ? ` (${appState.currentMultiplier}x)` : '';
         const galeText = bet.isGale ? ' 🎯 GALE!' : '';
         showToast(`Vitória! +R$ ${profit.toFixed(2)}${multiplierText}${galeText}`, 'success');
@@ -433,12 +467,34 @@ function updateHistory() {
         const galeIndicator = bet.isGale ? ' 🎯 <span style="background: rgba(59, 130, 246, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">GALE</span>' : '';
         const galeAmountInfo = bet.isGale && bet.galeOriginal ? `<div style="font-size: 0.85em; color: var(--blue); margin-top: 5px;">💰 Original: R$ ${bet.galeOriginal.toFixed(2)} → Dobrado: R$ ${bet.amount.toFixed(2)}</div>` : '';
         
+        // Info extra para TIE_RECOVERY
+        const tieRecoveryInfo = bet.result === 'TIE_RECOVERY' && bet.tieAmount ? 
+            `<div style="font-size: 0.85em; color: var(--warning); margin-top: 5px;">🎲 Empate: R$ ${bet.tieAmount.toFixed(2)} × ${bet.multiplier || 8} = R$ ${(bet.tieAmount * (bet.multiplier || 8)).toFixed(2)}</div>` : '';
+        
+        let resultText = '';
+        let bgColor = '';
+        let borderColor = '';
+        
+        if (bet.result === 'TIE_RECOVERY') {
+            resultText = '🎲 EMPATE RECUPEROU';
+            bgColor = bet.profit >= 0 ? 'rgba(255, 165, 0, 0.1)' : 'rgba(220, 53, 69, 0.1)';
+            borderColor = bet.profit >= 0 ? '#FFA500' : 'var(--danger)';
+        } else if (bet.result === 'WIN') {
+            resultText = '✅ VITÓRIA';
+            bgColor = 'rgba(40, 167, 69, 0.1)';
+            borderColor = 'var(--success)';
+        } else {
+            resultText = '❌ DERROTA';
+            bgColor = 'rgba(220, 53, 69, 0.1)';
+            borderColor = 'var(--danger)';
+        }
+        
         return `
-            <div class="history-item" style="background: ${bet.result === 'WIN' ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)'}; border-left: 4px solid ${bet.result === 'WIN' ? 'var(--success)' : 'var(--danger)'}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+            <div class="history-item" style="background: ${bgColor}; border-left: 4px solid ${borderColor}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
                 <div class="history-header">
                     <span class="history-bet-type">${bet.type}${multiplierText}${galeIndicator}</span>
                     <span class="history-result ${bet.result.toLowerCase()}">
-                        ${bet.result === 'WIN' ? '✅ VITÓRIA' : '❌ DERROTA'}
+                        ${resultText}
                     </span>
                 </div>
                 <div class="history-details">
@@ -447,6 +503,7 @@ function updateHistory() {
                         ${bet.profit >= 0 ? '+' : ''}R$ ${bet.profit.toFixed(2)}
                     </span>
                 </div>
+                ${tieRecoveryInfo}
                 ${galeAmountInfo}
                 <div class="history-details">
                     <span>${formattedDate} ${formattedTime}</span>
