@@ -1554,39 +1554,84 @@ let balanceSyncInterval = null;
 function syncBalanceFromGame() {
     try {
         const iframe = document.getElementById('gameIframe');
-        if (!iframe || !iframe.contentWindow) return;
+        if (!iframe || !iframe.contentWindow) {
+            console.log('⚠️ Iframe não encontrado ou não carregado');
+            return;
+        }
         
         // Tentar acessar o saldo dentro do iframe
         const iframeDoc = iframe.contentWindow.document;
-        const balanceElement = iframeDoc.evaluate(
-            '/html/body/div[1]/header/div[4]/div[2]/div/span',
+        
+        // Tentar com a div mestre primeiro
+        let balanceElement = iframeDoc.evaluate(
+            '/html/body/div[1]/header/div[4]/div[2]/div',
             iframeDoc,
             null,
             XPathResult.FIRST_ORDERED_NODE_TYPE,
             null
         ).singleNodeValue;
         
+        // Se não encontrou, tentar com span dentro
+        if (!balanceElement) {
+            balanceElement = iframeDoc.evaluate(
+                '/html/body/div[1]/header/div[4]/div[2]/div/span',
+                iframeDoc,
+                null,
+                XPathResult.FIRST_ORDERED_NODE_TYPE,
+                null
+            ).singleNodeValue;
+        }
+        
         if (balanceElement) {
             const balanceText = balanceElement.textContent.trim();
             console.log('💰 Saldo detectado no jogo:', balanceText);
             
-            // Extrair valor numérico (ex: "R$ 1936,40" -> 1936.40)
-            const balanceMatch = balanceText.match(/[\d.,]+/);
-            if (balanceMatch) {
-                const balanceValue = parseFloat(balanceMatch[0].replace('.', '').replace(',', '.'));
+            // Extrair valor numérico (ex: "R$ 2000,00" ou "2000.00" ou "R$ 3.293,00")
+            // Remove tudo exceto dígitos, vírgulas e pontos
+            const cleanText = balanceText.replace(/[^\d.,]/g, '');
+            
+            // Se tem vírgula E ponto, assume formato brasileiro (1.234,56)
+            let balanceValue;
+            if (cleanText.includes(',') && cleanText.includes('.')) {
+                balanceValue = parseFloat(cleanText.replace(/\./g, '').replace(',', '.'));
+            } 
+            // Se tem só vírgula, assume decimal brasileiro (1234,56)
+            else if (cleanText.includes(',')) {
+                balanceValue = parseFloat(cleanText.replace(',', '.'));
+            }
+            // Se tem só ponto, assume formato americano (1234.56)
+            else {
+                balanceValue = parseFloat(cleanText);
+            }
+            
+            if (balanceValue > 0 && !isNaN(balanceValue)) {
+                console.log(`✅ Valor extraído: R$ ${balanceValue.toFixed(2)}`);
                 
-                if (balanceValue > 0 && balanceValue !== appState.balance) {
-                    console.log(`✅ Sincronizando saldo: R$ ${balanceValue.toFixed(2)}`);
+                // Só atualiza se for diferente (evita loop)
+                if (Math.abs(balanceValue - appState.balance) > 0.01) {
+                    console.log(`🔄 Sincronizando saldo: R$ ${appState.balance.toFixed(2)} → R$ ${balanceValue.toFixed(2)}`);
                     appState.balance = balanceValue;
                     saveToStorage();
                     updateDisplay();
                     showToast(`💰 Saldo sincronizado: R$ ${balanceValue.toFixed(2)}`, 'success');
+                } else {
+                    console.log('✓ Saldo já está sincronizado');
                 }
+            } else {
+                console.log('⚠️ Valor inválido extraído:', cleanText, '→', balanceValue);
             }
+        } else {
+            console.log('⚠️ Elemento de saldo não encontrado no iframe');
         }
     } catch (error) {
         // CORS ou iframe bloqueado - normal para cross-origin
-        console.log('⚠️ Não foi possível acessar saldo do iframe (CORS):', error.message);
+        if (error.name === 'SecurityError' || error.message.includes('cross-origin')) {
+            console.log('🔒 CORS bloqueado - iframe está em domínio diferente');
+            showToast('⚠️ Sincronização bloqueada por CORS. Use botão manual na banca.', 'warning');
+            stopBalanceSync(); // Para de tentar se está bloqueado
+        } else {
+            console.log('⚠️ Erro ao acessar saldo do iframe:', error.message);
+        }
     }
 }
 
