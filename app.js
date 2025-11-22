@@ -1342,7 +1342,7 @@ let lastSignalId = null;
 
 function getAPIUrl() {
     const customUrl = document.getElementById('apiUrl')?.value;
-    return customUrl || 'http://localhost:5000';
+    return customUrl || 'https://bacbo-telegram-api.onrender.com';
 }
 
 async function checkSignal() {
