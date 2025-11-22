@@ -1294,6 +1294,254 @@ document.addEventListener('keydown', (e) => {
 // Initialize on load
 window.addEventListener('load', initApp);
 
+// Show Tab Function
+function showTab(tabName) {
+    // Oculta todas as sections
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Remove active de todas as tabs
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Ativa a section correta
+    const sectionMap = {
+        'bet': 'betSection',
+        'live': 'liveSection',
+        'history': 'historySection',
+        'stats': 'statsSection',
+        'stoploss': 'stopLossSection',
+        'plan': 'planSection'
+    };
+    
+    const sectionId = sectionMap[tabName];
+    if (sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.classList.add('active');
+        }
+    }
+    
+    // Ativa a tab clicada
+    event.target.closest('.nav-tab').classList.add('active');
+    
+    // Se mudou para aba live, atualiza histórico
+    if (tabName === 'live') {
+        updateSignalHistory();
+    }
+}
+
+// ============================================
+// TELEGRAM SIGNAL INTEGRATION
+// ============================================
+
+let autoCheckInterval = null;
+let lastSignalId = null;
+
+function getAPIUrl() {
+    const customUrl = document.getElementById('apiUrl')?.value;
+    return customUrl || 'http://localhost:5000';
+}
+
+async function checkSignal() {
+    try {
+        const response = await fetch(`${getAPIUrl()}/api/sinal`);
+        const data = await response.json();
+        
+        if (data.active && data.tipo && data.timestamp !== lastSignalId) {
+            lastSignalId = data.timestamp;
+            showSignal(data);
+            updateSignalHistory();
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Erro ao verificar sinal:', error);
+        showToast('Erro ao conectar com API', 'error');
+        return null;
+    }
+}
+
+function showSignal(signal) {
+    const overlay = document.getElementById('signalOverlay');
+    const typeEl = document.getElementById('signalType');
+    const iconEl = document.getElementById('signalIcon');
+    const galeEl = document.getElementById('signalGale');
+    const timeEl = document.getElementById('signalTime');
+    
+    // Define tipo e ícone
+    typeEl.textContent = signal.tipo;
+    
+    if (signal.tipo === 'PLAYER') {
+        iconEl.textContent = '💎';
+        overlay.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.98) 0%, rgba(37, 99, 235, 0.98) 100%)';
+        overlay.style.borderColor = '#3B82F6';
+    } else if (signal.tipo === 'BANKER') {
+        iconEl.textContent = '🏦';
+        overlay.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.98) 0%, rgba(220, 38, 38, 0.98) 100%)';
+        overlay.style.borderColor = '#EF4444';
+    } else if (signal.tipo === 'TIE') {
+        iconEl.textContent = '🎲';
+        overlay.style.background = 'linear-gradient(135deg, rgba(168, 85, 247, 0.98) 0%, rgba(147, 51, 234, 0.98) 100%)';
+        overlay.style.borderColor = '#A855F7';
+    }
+    
+    // Mostra/oculta GALE
+    if (signal.gale) {
+        galeEl.style.display = 'block';
+    } else {
+        galeEl.style.display = 'none';
+    }
+    
+    // Timestamp
+    const time = new Date(signal.timestamp);
+    timeEl.textContent = `Recebido às ${time.toLocaleTimeString('pt-BR')}`;
+    
+    // Mostra overlay
+    overlay.style.display = 'block';
+    
+    // Som de alerta
+    playAlertSound('win');
+    
+    // Auto-preenche aposta
+    if (document.getElementById('betSection').classList.contains('active')) {
+        selectBetTypeFromSignal(signal.tipo);
+    }
+    
+    showToast(`📡 Sinal recebido: ${signal.tipo}${signal.gale ? ' com GALE!' : ''}`, 'success');
+}
+
+function selectBetTypeFromSignal(tipo) {
+    // Remove seleções anteriores
+    document.querySelectorAll('.bet-type-card').forEach(card => {
+        card.classList.remove('selected');
+        card.querySelector('.bet-type-check').style.display = 'none';
+    });
+    
+    // Seleciona o tipo correto
+    const cards = document.querySelectorAll('.bet-type-card');
+    cards.forEach(card => {
+        const cardTipo = card.classList.contains('player') ? 'PLAYER' : 
+                        card.classList.contains('banker') ? 'BANKER' : 
+                        card.classList.contains('tie') ? 'TIE' : null;
+        
+        if (cardTipo === tipo) {
+            card.classList.add('selected');
+            card.querySelector('.bet-type-check').style.display = 'block';
+            appState.currentBetType = tipo;
+            
+            // Mostra botões de resultado se há valor
+            const amount = parseFloat(document.getElementById('betAmount').value);
+            if (amount > 0) {
+                document.getElementById('resultButtons').style.display = 'block';
+            }
+        }
+    });
+}
+
+async function clearSignal() {
+    const overlay = document.getElementById('signalOverlay');
+    overlay.style.display = 'none';
+    
+    try {
+        await fetch(`${getAPIUrl()}/api/clear`, { method: 'POST' });
+    } catch (error) {
+        console.error('Erro ao limpar sinal:', error);
+    }
+}
+
+async function updateSignalHistory() {
+    try {
+        const response = await fetch(`${getAPIUrl()}/api/sinais?limit=5`);
+        const sinais = await response.json();
+        
+        const historyDiv = document.getElementById('signalHistory');
+        
+        if (sinais.length === 0) {
+            historyDiv.innerHTML = '<p style="text-align: center; color: var(--light-gold); opacity: 0.7;">Nenhum sinal ainda</p>';
+            return;
+        }
+        
+        historyDiv.innerHTML = sinais.reverse().map(sinal => {
+            const time = new Date(sinal.timestamp);
+            const color = sinal.tipo === 'PLAYER' ? '#3B82F6' : 
+                         sinal.tipo === 'BANKER' ? '#EF4444' : '#A855F7';
+            
+            return `
+                <div style="padding: 10px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.05); border-left: 4px solid ${color}; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; color: ${color};">${sinal.tipo}</span>
+                        <span style="font-size: 0.85em; color: var(--light-gold); opacity: 0.7;">${time.toLocaleTimeString('pt-BR')}</span>
+                    </div>
+                    ${sinal.gale ? '<div style="color: var(--danger); font-size: 0.85em; margin-top: 5px;">🔥 COM GALE</div>' : ''}
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Erro ao atualizar histórico:', error);
+    }
+}
+
+async function testAPI() {
+    const statusDiv = document.getElementById('apiStatus');
+    statusDiv.style.background = 'rgba(59, 130, 246, 0.2)';
+    statusDiv.style.color = 'var(--blue)';
+    statusDiv.textContent = '⏳ Testando conexão...';
+    
+    try {
+        const response = await fetch(`${getAPIUrl()}/api/status`);
+        const data = await response.json();
+        
+        if (data.status === 'online') {
+            statusDiv.style.background = 'rgba(40, 167, 69, 0.2)';
+            statusDiv.style.color = 'var(--success)';
+            statusDiv.textContent = `✓ Conectado! Telegram: ${data.telegram_connected ? 'Online' : 'Offline'} | Sinais: ${data.total_signals}`;
+            showToast('✓ API conectada!', 'success');
+            updateSignalHistory();
+        }
+    } catch (error) {
+        statusDiv.style.background = 'rgba(220, 53, 69, 0.2)';
+        statusDiv.style.color = 'var(--danger)';
+        statusDiv.textContent = '✗ Erro de conexão! Verifique se a API está rodando.';
+        showToast('Erro ao conectar com API', 'error');
+    }
+}
+
+function startAutoCheck() {
+    if (autoCheckInterval) {
+        showToast('Auto-check já está ativo!', 'warning');
+        return;
+    }
+    
+    autoCheckInterval = setInterval(checkSignal, 3000); // A cada 3 segundos
+    showToast('▶ Auto-check iniciado!', 'success');
+    
+    const statusDiv = document.getElementById('apiStatus');
+    statusDiv.style.background = 'rgba(40, 167, 69, 0.2)';
+    statusDiv.style.color = 'var(--success)';
+    statusDiv.textContent = '▶ Auto-check ATIVO (a cada 3 segundos)';
+}
+
+function stopAutoCheck() {
+    if (autoCheckInterval) {
+        clearInterval(autoCheckInterval);
+        autoCheckInterval = null;
+        showToast('⏸ Auto-check pausado', 'info');
+        
+        const statusDiv = document.getElementById('apiStatus');
+        statusDiv.style.background = 'rgba(255, 193, 7, 0.2)';
+        statusDiv.style.color = 'var(--warning)';
+        statusDiv.textContent = '⏸ Auto-check PAUSADO';
+    }
+}
+
+// ============================================
+// END TELEGRAM SIGNAL INTEGRATION
+// ============================================
+
 // Prevent zoom on double tap
 let lastTouchEnd = 0;
 document.addEventListener('touchend', (e) => {

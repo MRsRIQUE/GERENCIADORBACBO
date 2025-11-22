@@ -1104,6 +1104,17 @@
             }
         }
 
+        @keyframes pulseSignal {
+            0%, 100% {
+                transform: translateX(-50%) scale(1);
+                box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5);
+            }
+            50% {
+                transform: translateX(-50%) scale(1.05);
+                box-shadow: 0 15px 50px rgba(212, 175, 55, 0.8);
+            }
+        }
+
         /* Settings Panel */
         .settings-panel {
             display: none;
@@ -1261,6 +1272,10 @@
                 <span class="nav-tab-icon">👑</span>
                 <span>Apostar</span>
             </button>
+            <button class="nav-tab" onclick="showTab('live')">
+                <span class="nav-tab-icon">🎮</span>
+                <span>Jogo</span>
+            </button>
             <button class="nav-tab" onclick="showTab('history')">
                 <span class="nav-tab-icon">📜</span>
                 <span>Histórico</span>
@@ -1277,6 +1292,58 @@
                 <span class="nav-tab-icon">📅</span>
                 <span>30D</span>
             </button>
+        </div>
+
+        <!-- Live Game Section -->
+        <div id="liveSection" class="content-section">
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <!-- Signal Overlay -->
+                <div id="signalOverlay" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; display: none; background: linear-gradient(135deg, rgba(212, 175, 55, 0.98) 0%, rgba(184, 134, 11, 0.98) 100%); border: 3px solid var(--primary-gold); border-radius: 15px; padding: 20px 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); animation: pulseSignal 2s infinite;">
+                    <div style="text-align: center;">
+                        <div id="signalIcon" style="font-size: 3em; margin-bottom: 10px;">🎯</div>
+                        <div id="signalType" style="font-size: 2em; font-weight: bold; color: var(--deep-green); margin-bottom: 5px;">PLAYER</div>
+                        <div id="signalGale" style="font-size: 1.2em; color: var(--danger); font-weight: bold; display: none;">🔥 COM GALE</div>
+                        <div id="signalTime" style="font-size: 0.9em; color: rgba(13, 13, 13, 0.7); margin-top: 10px;"></div>
+                    </div>
+                    <button onclick="clearSignal()" style="margin-top: 15px; width: 100%; background: var(--deep-green); color: var(--primary-gold); border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        ✓ OK, ENTENDI
+                    </button>
+                </div>
+                
+                <!-- Game iframe -->
+                <iframe id="gameIframe" src="https://go.aff.start.bet.br/ejifasdw" style="width: 100%; height: 600px; border: none;" allowfullscreen></iframe>
+                
+                <!-- Signal History -->
+                <div style="padding: 15px; background: rgba(10, 77, 60, 0.3); border-top: 2px solid var(--primary-gold);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 style="margin: 0; color: var(--primary-gold);">📡 Últimos Sinais</h3>
+                        <button onclick="checkSignal()" style="background: var(--blue); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9em;">
+                            🔄 Atualizar
+                        </button>
+                    </div>
+                    <div id="signalHistory" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                
+                <!-- API Config -->
+                <div style="padding: 15px; background: rgba(13, 13, 13, 0.3);">
+                    <label style="display: block; margin-bottom: 10px; color: var(--light-gold); font-weight: bold;">
+                        🔗 URL da API (deixe em branco para localhost:5000)
+                    </label>
+                    <input type="text" id="apiUrl" placeholder="http://localhost:5000" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--primary-gold); background: var(--deep-green); color: var(--light-gold); font-size: 1em;">
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button onclick="testAPI()" style="flex: 1; background: var(--success); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                            ✓ Testar Conexão
+                        </button>
+                        <button onclick="startAutoCheck()" style="flex: 1; background: var(--blue); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                            ▶ Iniciar Auto-Check
+                        </button>
+                        <button onclick="stopAutoCheck()" style="flex: 1; background: var(--danger); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                            ⏸ Parar
+                        </button>
+                    </div>
+                    <div id="apiStatus" style="margin-top: 10px; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold;"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Bet Section -->
