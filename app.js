@@ -1551,3 +1551,6 @@ document.addEventListener('touchend', (e) => {
     }
     lastTouchEnd = now;
 }, false);
+
+// Initialize app on load - Show live tab first
+showTab('live');
