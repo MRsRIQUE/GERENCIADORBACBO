@@ -1327,9 +1327,13 @@ function showTab(tabName) {
     // Ativa a tab clicada
     event.target.closest('.nav-tab').classList.add('active');
     
-    // Se mudou para aba live, atualiza histórico
+    // Se mudou para aba live, atualiza histórico e inicia sync de saldo
     if (tabName === 'live') {
         updateSignalHistory();
+        startBalanceSync();
+    } else {
+        // Quando sai da aba do jogo, para sincronização
+        stopBalanceSync();
     }
 }
 
@@ -1540,6 +1544,73 @@ function stopAutoCheck() {
 
 // ============================================
 // END TELEGRAM SIGNAL INTEGRATION
+// ============================================
+
+// ============================================
+// BALANCE AUTO-SYNC FROM GAME IFRAME
+// ============================================
+let balanceSyncInterval = null;
+
+function syncBalanceFromGame() {
+    try {
+        const iframe = document.getElementById('gameIframe');
+        if (!iframe || !iframe.contentWindow) return;
+        
+        // Tentar acessar o saldo dentro do iframe
+        const iframeDoc = iframe.contentWindow.document;
+        const balanceElement = iframeDoc.evaluate(
+            '/html/body/div[1]/header/div[4]/div[2]/div/span',
+            iframeDoc,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+        ).singleNodeValue;
+        
+        if (balanceElement) {
+            const balanceText = balanceElement.textContent.trim();
+            console.log('💰 Saldo detectado no jogo:', balanceText);
+            
+            // Extrair valor numérico (ex: "R$ 1936,40" -> 1936.40)
+            const balanceMatch = balanceText.match(/[\d.,]+/);
+            if (balanceMatch) {
+                const balanceValue = parseFloat(balanceMatch[0].replace('.', '').replace(',', '.'));
+                
+                if (balanceValue > 0 && balanceValue !== appState.balance) {
+                    console.log(`✅ Sincronizando saldo: R$ ${balanceValue.toFixed(2)}`);
+                    appState.balance = balanceValue;
+                    saveToStorage();
+                    updateDisplay();
+                    showToast(`💰 Saldo sincronizado: R$ ${balanceValue.toFixed(2)}`, 'success');
+                }
+            }
+        }
+    } catch (error) {
+        // CORS ou iframe bloqueado - normal para cross-origin
+        console.log('⚠️ Não foi possível acessar saldo do iframe (CORS):', error.message);
+    }
+}
+
+function startBalanceSync() {
+    if (balanceSyncInterval) return;
+    
+    // Sincronizar a cada 10 segundos
+    balanceSyncInterval = setInterval(syncBalanceFromGame, 10000);
+    console.log('🔄 Sincronização automática de saldo iniciada (10s)');
+    
+    // Sincronizar imediatamente também
+    setTimeout(syncBalanceFromGame, 3000); // Aguarda 3s para iframe carregar
+}
+
+function stopBalanceSync() {
+    if (balanceSyncInterval) {
+        clearInterval(balanceSyncInterval);
+        balanceSyncInterval = null;
+        console.log('⏸ Sincronização de saldo pausada');
+    }
+}
+
+// ============================================
+// END BALANCE AUTO-SYNC
 // ============================================
 
 // Prevent zoom on double tap

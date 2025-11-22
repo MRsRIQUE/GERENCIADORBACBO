@@ -1330,7 +1330,15 @@
                         🔗 URL da API (deixe em branco para localhost:5000)
                     </label>
                     <input type="text" id="apiUrl" placeholder="http://localhost:5000" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--primary-gold); background: var(--deep-green); color: var(--light-gold); font-size: 1em;">
-                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                    
+                    <label style="display: block; margin-top: 15px; margin-bottom: 10px; color: var(--light-gold); font-weight: bold;">
+                        💰 Sincronização de Saldo
+                    </label>
+                    <button onclick="syncBalanceFromGame()" style="width: 100%; background: linear-gradient(135deg, var(--primary-gold), var(--light-gold)); color: var(--deep-green); border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px;">
+                        🔄 Sincronizar Saldo do Jogo
+                    </button>
+                    
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
                         <button onclick="testAPI()" style="flex: 1; background: var(--success); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">
                             ✓ Testar Conexão
                         </button>
