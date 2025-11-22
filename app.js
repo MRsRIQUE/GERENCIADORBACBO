@@ -1312,7 +1312,7 @@ function showTab(tabName) {
         'live': 'liveSection',
         'history': 'historySection',
         'stats': 'statsSection',
-        'stoploss': 'stopLossSection',
+        'stoploss': 'stoplossSection',
         'plan': 'planSection'
     };
     
