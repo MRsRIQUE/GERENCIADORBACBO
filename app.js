@@ -1551,6 +1551,22 @@ function stopAutoCheck() {
 // ============================================
 let balanceSyncInterval = null;
 
+function updateBalanceManually() {
+    const input = document.getElementById('manualBalanceInput');
+    const value = parseFloat(input.value);
+    
+    if (!value || value <= 0 || isNaN(value)) {
+        showToast('⚠️ Digite um valor válido!', 'error');
+        return;
+    }
+    
+    appState.balance = value;
+    saveToStorage();
+    updateDisplay();
+    showToast(`💰 Saldo atualizado para R$ ${value.toFixed(2)}!`, 'success');
+    input.value = '';
+}
+
 function syncBalanceFromGame() {
     try {
         const iframe = document.getElementById('gameIframe');
