@@ -1306,20 +1306,20 @@
         <div id="liveSection" class="content-section">
             <div class="card" style="padding: 0; overflow: hidden;">
                 <!-- Signal Overlay -->
-                <div id="signalOverlay" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; display: none; background: linear-gradient(135deg, rgba(212, 175, 55, 0.98) 0%, rgba(184, 134, 11, 0.98) 100%); border: 3px solid var(--primary-gold); border-radius: 15px; padding: 20px 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); animation: pulseSignal 2s infinite;">
+                <div id="signalOverlay" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: none; background: linear-gradient(135deg, rgba(212, 175, 55, 0.98) 0%, rgba(184, 134, 11, 0.98) 100%); border: 3px solid var(--primary-gold); border-radius: 12px; padding: 15px 40px; width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); animation: pulseSignal 2s infinite;">
                     <div style="text-align: center;">
-                        <div id="signalIcon" style="font-size: 3em; margin-bottom: 10px;">🎯</div>
-                        <div id="signalType" style="font-size: 2em; font-weight: bold; color: var(--deep-green); margin-bottom: 5px;">PLAYER</div>
-                        <div id="signalGale" style="font-size: 1.2em; color: var(--danger); font-weight: bold; display: none;">🔥 COM GALE</div>
-                        <div id="signalTime" style="font-size: 0.9em; color: rgba(13, 13, 13, 0.7); margin-top: 10px;"></div>
+                        <div id="signalIcon" style="font-size: 2em; margin-bottom: 5px;">🎯</div>
+                        <div id="signalType" style="font-size: 1.5em; font-weight: bold; color: var(--deep-green); margin-bottom: 3px;">PLAYER</div>
+                        <div id="signalGale" style="font-size: 1em; color: var(--danger); font-weight: bold; display: none;">🔥 COM GALE</div>
+                        <div id="signalTime" style="font-size: 0.8em; color: rgba(13, 13, 13, 0.7); margin-top: 5px;"></div>
                     </div>
-                    <button onclick="clearSignal()" style="margin-top: 15px; width: 100%; background: var(--deep-green); color: var(--primary-gold); border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    <button onclick="clearSignal()" style="margin-top: 10px; width: 100%; background: var(--deep-green); color: var(--primary-gold); border: none; padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9em;">
                         ✓ OK, ENTENDI
                     </button>
                 </div>
                 
                 <!-- Game iframe -->
-                <iframe id="gameIframe" src="https://go.aff.start.bet.br/ejifasdw" style="width: 100%; height: 600px; border: none;" allowfullscreen></iframe>
+                <iframe id="gameIframe" src="https://go.aff.start.bet.br/ejifasdw" style="width: 100%; height: 400px; border: none;" allowfullscreen></iframe>
                 
                 <!-- Signal History -->
                 <div style="padding: 15px; background: rgba(10, 77, 60, 0.3); border-top: 2px solid var(--primary-gold);">
