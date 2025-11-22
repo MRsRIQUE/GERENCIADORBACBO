@@ -1327,13 +1327,9 @@ function showTab(tabName) {
     // Ativa a tab clicada
     event.target.closest('.nav-tab').classList.add('active');
     
-    // Se mudou para aba live, atualiza histórico e inicia sync de saldo
+    // Quando sai da aba do jogo, para sincronização
     if (tabName === 'live') {
         updateSignalHistory();
-        startBalanceSync();
-    } else {
-        // Quando sai da aba do jogo, para sincronização
-        stopBalanceSync();
     }
 }
 

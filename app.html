@@ -1331,20 +1331,6 @@
                     </label>
                     <input type="text" id="apiUrl" placeholder="http://localhost:5000" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--primary-gold); background: var(--deep-green); color: var(--light-gold); font-size: 1em;">
                     
-                    <label style="display: block; margin-top: 15px; margin-bottom: 10px; color: var(--light-gold); font-weight: bold;">
-                        💰 Atualizar Saldo Manualmente
-                    </label>
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <input type="number" id="manualBalanceInput" placeholder="Digite o saldo (ex: 2000)" step="0.01" style="flex: 1; padding: 10px; border-radius: 8px; border: 2px solid var(--primary-gold); background: var(--deep-green); color: var(--light-gold); font-size: 1em;">
-                        <button onclick="updateBalanceManually()" style="background: linear-gradient(135deg, var(--primary-gold), var(--light-gold)); color: var(--deep-green); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; white-space: nowrap;">
-                            ✓ Atualizar
-                        </button>
-                    </div>
-                    
-                    <div style="padding: 10px; background: rgba(255, 193, 7, 0.1); border-left: 3px solid var(--warning); border-radius: 5px; font-size: 0.9em; color: var(--light-gold); margin-bottom: 15px;">
-                        ℹ️ <strong>CORS bloqueado:</strong> Não é possível ler saldo automaticamente do jogo. Copie o valor manualmente acima.
-                    </div>
-                    
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
                         <button onclick="testAPI()" style="flex: 1; background: var(--success); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">
                             ✓ Testar Conexão
