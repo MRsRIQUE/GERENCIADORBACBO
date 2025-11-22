@@ -84,6 +84,11 @@
         }
 
         .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 80px; /* Espaço para navbar fixa */
+        }
             max-width: 1200px;
             margin: 0 auto;
             padding: 15px;
@@ -197,6 +202,21 @@
 
         /* Navigation Tabs */
         .nav-tabs {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            gap: 0;
+            margin: 0;
+            background: var(--deep-green);
+            border-top: 3px solid var(--primary-gold);
+            border-radius: 0;
+            padding: 8px 0;
+            z-index: 999;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+        }
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 8px;
@@ -208,6 +228,22 @@
         }
 
         .nav-tab {
+            flex: 1;
+            padding: 10px 5px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            color: var(--light-gold);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
             padding: 12px 8px;
             background: transparent;
             border: none;
@@ -1266,34 +1302,6 @@
             <div class="balance-profit" id="profitDisplay"></div>
         </div>
 
-        <!-- Navigation -->
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="showTab('live')">
-                <span class="nav-tab-icon">🎮</span>
-                <span>Jogo</span>
-            </button>
-            <button class="nav-tab" onclick="showTab('bet')">
-                <span class="nav-tab-icon">👑</span>
-                <span>Apostar</span>
-            </button>
-            <button class="nav-tab" onclick="showTab('history')">
-                <span class="nav-tab-icon">📜</span>
-                <span>Histórico</span>
-            </button>
-            <button class="nav-tab" onclick="showTab('stats')">
-                <span class="nav-tab-icon">📊</span>
-                <span>Stats</span>
-            </button>
-            <button class="nav-tab" onclick="showTab('stoploss')">
-                <span class="nav-tab-icon">⚙️</span>
-                <span>Stop</span>
-            </button>
-            <button class="nav-tab" onclick="showTab('plan')">
-                <span class="nav-tab-icon">📅</span>
-                <span>30D</span>
-            </button>
-        </div>
-
         <!-- Live Game Section -->
         <div id="liveSection" class="content-section">
             <div class="card" style="padding: 0; overflow: hidden;">
@@ -1647,5 +1655,34 @@
     </div>
 
     <script src="app.js"></script>
+
+    <!-- Navigation (Fixed Bottom) -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showTab('live')">
+            <span class="nav-tab-icon">🎮</span>
+            <span>Jogo</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('bet')">
+            <span class="nav-tab-icon">👑</span>
+            <span>Apostar</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('history')">
+            <span class="nav-tab-icon">📜</span>
+            <span>Histórico</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('stats')">
+            <span class="nav-tab-icon">📊</span>
+            <span>Stats</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('stoploss')">
+            <span class="nav-tab-icon">⚙️</span>
+            <span>Stop</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('plan')">
+            <span class="nav-tab-icon">📅</span>
+            <span>30D</span>
+        </button>
+    </div>
+
 </body>
 </html>
