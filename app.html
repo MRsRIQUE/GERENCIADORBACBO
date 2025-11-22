@@ -1295,13 +1295,13 @@
             </div>
         </div>
 
-        <!-- Balance Card -->
-        <div class="balance-card">
+        <!-- Balance Card (moved to individual sections) -->
+        <!--
             <div class="balance-label">Banca Atual</div>
             <div class="balance-amount" id="currentBalance">R$ 0,00</div>
             <div class="balance-profit" id="profitDisplay"></div>
         </div>
-
+        -->
         <!-- Live Game Section -->
         <div id="liveSection" class="content-section">
             <div class="card" style="padding: 0; overflow: hidden;">
@@ -1319,7 +1319,7 @@
                 </div>
                 
                 <!-- Game iframe -->
-                <iframe id="gameIframe" src="https://go.aff.start.bet.br/ejifasdw" style="width: 100%; height: 400px; border: none;" allowfullscreen></iframe>
+                <iframe id="gameIframe" src="https://go.aff.start.bet.br/ejifasdw" style="width: 100%; height: 600px; border: none;" allowfullscreen></iframe>
                 
                 <!-- Signal History -->
                 <div style="padding: 15px; background: rgba(10, 77, 60, 0.3); border-top: 2px solid var(--primary-gold);">
@@ -1357,6 +1357,13 @@
 
         <!-- Bet Section -->
         <div id="betSection" class="content-section active">
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Banca Atual</div>
+            <div class="balance-amount" id="currentBalance">R$ 0,00</div>
+            <div class="balance-profit" id="profitDisplay"></div>
+        </div>
+
             <!-- Amount -->
             <div class="card">
                 <div class="card-title">💰 Valor da Aposta</div>
@@ -1475,6 +1482,13 @@
 
         <!-- History Section -->
         <div id="historySection" class="content-section">
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Banca Atual</div>
+            <div class="balance-amount" id="currentBalance">R$ 0,00</div>
+            <div class="balance-profit" id="profitDisplay"></div>
+        </div>
+
             <div class="card">
                 <div class="card-title">📜 Histórico de Apostas</div>
                 <button class="btn btn-success" onclick="exportHistory()" style="margin-bottom: 15px;">
@@ -1496,6 +1510,13 @@
 
         <!-- Stats Section -->
         <div id="statsSection" class="content-section">
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Banca Atual</div>
+            <div class="balance-amount" id="currentBalance">R$ 0,00</div>
+            <div class="balance-profit" id="profitDisplay"></div>
+        </div>
+
             <div class="card">
                 <div class="card-title">📈 Estatísticas Gerais</div>
                 
@@ -1559,6 +1580,13 @@
 
         <!-- Stop Loss Section -->
         <div id="stoplossSection" class="content-section">
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Banca Atual</div>
+            <div class="balance-amount" id="currentBalance">R$ 0,00</div>
+            <div class="balance-profit" id="profitDisplay"></div>
+        </div>
+
             <div class="card">
                 <div class="card-title">⚠️ Stop Loss / Stop Gain</div>
                 
@@ -1592,6 +1620,13 @@
 
         <!-- 30-Day Plan Section -->
         <div id="planSection" class="content-section">
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Banca Atual</div>
+            <div class="balance-amount" id="currentBalance">R$ 0,00</div>
+            <div class="balance-profit" id="profitDisplay"></div>
+        </div>
+
             <div class="card">
                 <div class="card-title">📅 Plano de Gestão 30 Dias</div>
                 
