@@ -87,7 +87,7 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            padding-bottom: 80px; /* Espaço para navbar fixa */
+            padding-bottom: 20px;
         }
             max-width: 1200px;
             margin: 0 auto;
@@ -202,20 +202,15 @@
 
         /* Navigation Tabs */
         .nav-tabs {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
             display: flex;
             justify-content: space-around;
             gap: 0;
-            margin: 0;
+            margin: 20px 0;
             background: var(--deep-green);
-            border-top: 3px solid var(--primary-gold);
-            border-radius: 0;
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
             padding: 8px 0;
-            z-index: 999;
-            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -1302,6 +1297,34 @@
             <div class="balance-profit" class="profitDisplay"></div>
         </div>
         -->
+        <!-- Navigation -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showTab('live')">
+            <span class="nav-tab-icon">🎮</span>
+            <span>Jogo</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('bet')">
+            <span class="nav-tab-icon">👑</span>
+            <span>Apostar</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('history')">
+            <span class="nav-tab-icon">📜</span>
+            <span>Histórico</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('stats')">
+            <span class="nav-tab-icon">📊</span>
+            <span>Stats</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('stoploss')">
+            <span class="nav-tab-icon">⚙️</span>
+            <span>Stop</span>
+        </button>
+        <button class="nav-tab" onclick="showTab('plan')">
+            <span class="nav-tab-icon">📅</span>
+            <span>30D</span>
+        </button>
+    </div>
+
         <!-- Live Game Section -->
         <div id="liveSection" class="content-section">
             <div class="card" style="padding: 0; overflow: hidden;">
@@ -1690,34 +1713,6 @@
     </div>
 
     <script src="app.js"></script>
-
-    <!-- Navigation (Fixed Bottom) -->
-    <div class="nav-tabs">
-        <button class="nav-tab active" onclick="showTab('live')">
-            <span class="nav-tab-icon">🎮</span>
-            <span>Jogo</span>
-        </button>
-        <button class="nav-tab" onclick="showTab('bet')">
-            <span class="nav-tab-icon">👑</span>
-            <span>Apostar</span>
-        </button>
-        <button class="nav-tab" onclick="showTab('history')">
-            <span class="nav-tab-icon">📜</span>
-            <span>Histórico</span>
-        </button>
-        <button class="nav-tab" onclick="showTab('stats')">
-            <span class="nav-tab-icon">📊</span>
-            <span>Stats</span>
-        </button>
-        <button class="nav-tab" onclick="showTab('stoploss')">
-            <span class="nav-tab-icon">⚙️</span>
-            <span>Stop</span>
-        </button>
-        <button class="nav-tab" onclick="showTab('plan')">
-            <span class="nav-tab-icon">📅</span>
-            <span>30D</span>
-        </button>
-    </div>
 
 </body>
 </html>
