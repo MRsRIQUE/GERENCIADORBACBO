@@ -349,11 +349,14 @@ function updateUI() {
 
 // Update Balance
 function updateBalance() {
+    console.log("🔄 updateBalance() chamada - Balance:", appState.balance);
     const profit = appState.balance - appState.initialBalance;
     const profitPercent = ((profit / appState.initialBalance) * 100).toFixed(2);
     
     // Atualizar TODOS os elementos com class currentBalance
-    document.querySelectorAll('.currentBalance').forEach(el => {
+    const balanceElements = document.querySelectorAll('.currentBalance');
+    console.log("💰 Elementos encontrados:", balanceElements.length);
+    balanceElements.forEach(el => {
         el.textContent = `R$ ${appState.balance.toFixed(2)}`;
     });
     
