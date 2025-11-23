@@ -352,18 +352,23 @@ function updateBalance() {
     const profit = appState.balance - appState.initialBalance;
     const profitPercent = ((profit / appState.initialBalance) * 100).toFixed(2);
     
-    document.getElementById('currentBalance').textContent = `R$ ${appState.balance.toFixed(2)}`;
+    // Atualizar TODOS os elementos com class currentBalance
+    document.querySelectorAll('.currentBalance').forEach(el => {
+        el.textContent = `R$ ${appState.balance.toFixed(2)}`;
+    });
     
-    const profitDisplay = document.getElementById('profitDisplay');
     const icon = profit >= 0 ? '📈' : '📉';
     const className = profit >= 0 ? 'profit-positive' : 'profit-negative';
     const sign = profit >= 0 ? '+' : '';
     
-    profitDisplay.innerHTML = `
-        <span class="${className}">
-            ${icon} ${sign}R$ ${profit.toFixed(2)} (${sign}${profitPercent}%)
-        </span>
-    `;
+    // Atualizar TODOS os elementos com class profitDisplay
+    document.querySelectorAll('.profitDisplay').forEach(profitDisplay => {
+        profitDisplay.innerHTML = `
+            <span class="${className}">
+                ${icon} ${sign}R$ ${profit.toFixed(2)} (${sign}${profitPercent}%)
+            </span>
+        `;
+    });
 }
 
 // Update Stats
